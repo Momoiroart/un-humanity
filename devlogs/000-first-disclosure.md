@@ -7,9 +7,10 @@ what UN-HUMANITY is, and where development starts.
 
 ## What this is
 
-**UN-HUMANITY** is a third-person action-investigation about the people who
-can see the cracks in reality — and the covert organization that pays them
-to keep everyone else comfortable.
+**UN-HUMANITY** is a game about the people who can see the cracks in
+reality — and the covert organization that pays them to keep everyone else
+comfortable. (What kind of game, exactly? That call comes in the next
+entry.)
 
 **The loop:** Tip → Investigate → Classify → Engage → Resolve → go home and
 act normal. Not everything you find is hostile. Wrong calls have consequences

@@ -21,10 +21,17 @@ Since roughly the Bronze Age, reality has been leaking **anomalies** — beings,
 objects, and events that don't belong. Most people can't perceive them at all.
 You can.
 
-**UN-HUMANITY** is a third-person action-investigation built solo in Unity.
-You play a Seer-Operative for a covert organization whose entire job is
-keeping the illusion of normal life intact: find the anomaly, decide what it
-is, and handle it — then go home and pretend you have a normal job.
+**UN-HUMANITY** is an investigation-driven RPG with turn-based combat, built
+solo in Unity. You play a Seer-Operative for a covert organization whose
+entire job is keeping the illusion of normal life intact: find the anomaly,
+decide what it is, and handle it — then go home and pretend you have a
+normal job.
+
+Combat is turn-based on purpose. These enemies **cheat** — they skip the
+costs that bind any human power — and a system with visible rules (turn
+order, action costs, resources) is where a broken rule actually *reads* as a
+violation instead of a stat check. You don't out-damage them. You figure out
+which rule they're breaking, and make them pay it.
 
 ## The pillars
 
@@ -55,11 +62,13 @@ Development is logged in [`/devlogs`](devlogs) and mirrored to
 | # | Entry |
 |---|-------|
 | 000 | [First Disclosure](devlogs/000-first-disclosure.md) |
+| 001 | [The File Has a Genre](devlogs/001-the-file-has-a-genre.md) |
 
 ## Status
 
-Pre-production. GDD v0.1 complete. Current goal: the vertical slice —
-**one location, one anomaly, one full loop.**
+Pre-production. GDD v0.2 — genre, power system, and first case locked. First
+case on the table: **FILE UH-001, "The Bus Stop Waiter."** Current goal: the
+vertical slice — **one location, one anomaly, one full loop.**
 
 ---
 
