@@ -1,0 +1,13 @@
+# Exported by three-d-stage
+newmtl SURF_Concrete_Kerb
+Kd 0.2423 0.1981 0.2307
+Ks 0.2000 0.2000 0.2000
+Ns 10
+d 1.0000
+
+newmtl SURF_Concrete_Sidewalk
+Kd 0.3231 0.2705 0.3050
+Ks 0.2000 0.2000 0.2000
+Ns 16
+d 1.0000
+

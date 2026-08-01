@@ -1,0 +1,31 @@
+# Exported by three-d-stage
+newmtl SURF_Steel_Painted
+Kd 0.1878 0.0887 0.1119
+Ks 0.2000 0.2000 0.2000
+Ns 76
+d 1.0000
+
+newmtl SURF_Rubber_Black
+Kd 0.0176 0.0123 0.0212
+Ks 0.2000 0.2000 0.2000
+Ns 20
+d 1.0000
+
+newmtl SURF_Aluminium_Brushed
+Kd 0.5520 0.4793 0.5149
+Ks 0.2000 0.2000 0.2000
+Ns 116
+d 1.0000
+
+newmtl SURF_Tape_Warning
+Kd 0.3419 0.0545 0.0953
+Ks 0.2000 0.2000 0.2000
+Ns 30
+d 1.0000
+
+newmtl SURF_Emissive_Display
+Kd 0.9911 0.5776 0.6445
+Ks 0.2000 0.2000 0.2000
+Ns 100
+d 1.0000
+

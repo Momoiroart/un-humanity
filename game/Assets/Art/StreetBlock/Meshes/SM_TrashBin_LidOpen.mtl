@@ -1,0 +1,31 @@
+# Exported by three-d-stage
+newmtl SURF_Steel_Painted
+Kd 0.1878 0.0887 0.1119
+Ks 0.2000 0.2000 0.2000
+Ns 76
+d 1.0000
+
+newmtl SURF_Metal_Galvanised
+Kd 0.3968 0.3325 0.3712
+Ks 0.2000 0.2000 0.2000
+Ns 90
+d 1.0000
+
+newmtl SURF_Rubber_Black
+Kd 0.0176 0.0123 0.0212
+Ks 0.2000 0.2000 0.2000
+Ns 20
+d 1.0000
+
+newmtl SURF_Paper_Newsprint
+Kd 0.8070 0.7379 0.7605
+Ks 0.2000 0.2000 0.2000
+Ns 0
+d 1.0000
+
+newmtl SURF_Steel_Rust
+Kd 0.1946 0.0612 0.0802
+Ks 0.2000 0.2000 0.2000
+Ns 10
+d 1.0000
+

@@ -1,0 +1,19 @@
+# Exported by three-d-stage
+newmtl SURF_Asphalt_Worn
+Kd 0.0482 0.0343 0.0513
+Ks 0.2000 0.2000 0.2000
+Ns 4
+d 1.0000
+
+newmtl SURF_Asphalt_Damp
+Kd 0.0343 0.0242 0.0395
+Ks 0.2000 0.2000 0.2000
+Ns 56
+d 1.0000
+
+newmtl SURF_Paper_Newsprint
+Kd 0.8070 0.7379 0.7605
+Ks 0.2000 0.2000 0.2000
+Ns 0
+d 1.0000
+
