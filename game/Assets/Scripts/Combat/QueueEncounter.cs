@@ -1,0 +1,130 @@
+// UN-HUMANITY combat core — THE QUEUE, the scripted encounter engine.
+// Round shape: the Waiter cheats first (unless order is enforced), the
+// player acts (if their turn wasn't stolen), the victim's clock ticks.
+// Damage does not exist here. You cannot win by hurting it.
+
+namespace UnHumanity.Combat
+{
+    public sealed class QueueEncounter
+    {
+        public readonly CombatState State;
+
+        public QueueEncounter(CombatState state) => State = state;
+
+        /// The Waiter's opening script, then a cycle. Deterministic — the
+        /// horror is legibility, not randomness.
+        static IllegalMove ScriptFor(int round) => round switch
+        {
+            1 => IllegalMove.TurnTheft,
+            2 => IllegalMove.CounterDeletion,
+            3 => IllegalMove.Waiting,
+            _ => (round % 2 == 0) ? IllegalMove.TurnTheft : IllegalMove.Waiting,
+        };
+
+        /// Phase 1 — the Waiter's non-turn. It never acts. It cheats.
+        public void WaiterPhase()
+        {
+            var s = State;
+            if (s.Outcome != Outcome.Ongoing) return;
+
+            s.PlayerTurnStolenThisRound = false;
+
+            // Suppression is consumed HERE, at the moment it denies a cheat —
+            // an enforcement act cast on round N protects round N+1. (Bug
+            // caught by tests: decrementing at end-of-round made every
+            // suppression expire before it ever protected anything.)
+            if (s.SuppressionRounds > 0)
+            {
+                s.SuppressionRounds--;
+                s.ActiveIllegalMove = IllegalMove.None;
+                s.Log.Add(new LogEvent(s.Waiter.Name, "waits, held inside the schedule", zeroCost: true));
+                return;
+            }
+
+            var move = ScriptFor(s.InternalRound);
+            s.ActiveIllegalMove = move;
+            switch (move)
+            {
+                case IllegalMove.TurnTheft:
+                    s.PlayerTurnStolenThisRound = true;
+                    s.Log.Add(new LogEvent(s.Waiter.Name,
+                        "is ahead of you in the queue. Your turn happens behind it", zeroCost: true));
+                    break;
+                case IllegalMove.CounterDeletion:
+                    s.CounterVisible = false;
+                    s.Log.Add(new LogEvent(s.Waiter.Name,
+                        "the turn counter is gone. The fight has always been happening", zeroCost: true));
+                    break;
+                case IllegalMove.Waiting:
+                    s.Player.HasWaitingStatus = true;
+                    s.Log.Add(new LogEvent(s.Waiter.Name,
+                        "[WAITING] — you may act after it acts. It does not act", zeroCost: true));
+                    break;
+            }
+        }
+
+        /// Phase 2 — the player's turn. Returns false if the act was illegal
+        /// under current state (stolen turn / WAITING gate / unpayable cost).
+        public bool PlayerPhase(PlayerAction action)
+        {
+            var s = State;
+            if (s.Outcome != Outcome.Ongoing) return false;
+
+            if (s.PlayerTurnStolenThisRound)
+            {
+                s.Log.Add(new LogEvent("Queue", "your turn already happened. You were behind it"));
+                return false;
+            }
+            if (s.Player.HasWaitingStatus && !action.PiercesWaiting)
+            {
+                s.Log.Add(new LogEvent("Queue", $"[WAITING] holds — {action.Name} needs a turn that never comes"));
+                return false;
+            }
+            if (!action.CanExecute(s))
+            {
+                s.Log.Add(new LogEvent("Queue", $"{action.Name}: cost cannot be paid ({action.Cost})"));
+                return false;
+            }
+            action.Execute(s);
+            return true;
+        }
+
+        /// Phase 3 — the wait grinds on. Clocks tick, wins/losses resolve.
+        public void EndRound()
+        {
+            var s = State;
+            if (s.Outcome != Outcome.Ongoing) return;
+
+            // she pays its time, every round, until she is out
+            s.VictimClock--;
+            if (s.VictimClock <= 0 && s.Outcome == Outcome.Ongoing)
+            {
+                s.Outcome = Outcome.VictimLost;
+                s.Log.Add(new LogEvent("Resolution", "for her it was twenty minutes. It was not."));
+                return;
+            }
+
+            // order streak: a clean, counted round moves the fight toward resolution
+            bool clean = s.CounterVisible && s.ActiveIllegalMove == IllegalMove.None
+                         && !s.PlayerTurnStolenThisRound && !s.Player.HasWaitingStatus;
+            s.OrderStreak = clean ? s.OrderStreak + 1 : 0;
+            if (s.OrderStreak >= s.OrderStreakToWin)
+            {
+                s.Outcome = Outcome.OrderReimposed;
+                s.Log.Add(new LogEvent("Resolution", "time holds. Long enough."));
+                return;
+            }
+
+            if (s.Player.RadioCooldown > 0) s.Player.RadioCooldown--;
+            s.InternalRound++;   // always. Deleting the display never stopped it.
+        }
+
+        /// Convenience: run one full round with the given player choice.
+        public void RunRound(PlayerAction action)
+        {
+            WaiterPhase();
+            PlayerPhase(action);
+            EndRound();
+        }
+    }
+}
