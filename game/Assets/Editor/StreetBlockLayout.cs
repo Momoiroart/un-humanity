@@ -65,25 +65,33 @@ public static class StreetBlockLayout
         }
 
         // ── Sidewalk slabs (tops flush with kerb at Y≈0.411) ──
+        // Full 4 m width BOTH sides per the sheet; facade fronts sit on the
+        // outermost slab row, so kerb → slabs → building line is continuous.
         for (int i = 0; i < 12; i++)
         {
             float z = i * 4f;
             foreach (float x in new[] { -8.3f, -7.3f, -6.3f, -5.3f })
                 Place(walkS, "SM_SidewalkSlab_1x4", new Vector3(x, 0.255f, z), 0);
-            foreach (float x in new[] { 4.311f, 5.311f })
+            foreach (float x in new[] { 4.311f, 5.311f, 6.311f, 7.311f })
                 Place(walkN, "SM_SidewalkSlab_1x4", new Vector3(x, 0.255f, z), 0);
         }
 
         // ── Facade lines: alternate A (shop) / B (flats); north keeps a gap
         //    at Z 32-36 for 14 · the blocked maintenance alley ──
+        // Fronts aligned to the building line (A and B differ in depth, so
+        // anchor the street-facing face, not the back).
         for (int i = 0; i < 12; i++)
         {
             float z = i * 4f;
             string mesh = (i % 2 == 0) ? "SM_FacadeModule_A_Shop" : "SM_FacadeModule_B_Flats";
-            Place(facadeS, mesh, new Vector3(-8.90f, 0f, z), 90);
+            var s = Place(facadeS, mesh, new Vector3(-8.90f, 0f, z), 90);
+            AlignX(s, -8.03f, alignMax: true);   // front face flush at -8.03
             if (i != 8) // alley slot on the north line
-                Place(facadeN, (i % 2 == 0) ? "SM_FacadeModule_B_Flats" : "SM_FacadeModule_A_Shop",
+            {
+                var n = Place(facadeN, (i % 2 == 0) ? "SM_FacadeModule_B_Flats" : "SM_FacadeModule_A_Shop",
                       new Vector3(8.03f, 0f, z), -90);
+                AlignX(n, 8.03f, alignMax: false); // front face flush at +8.03
+            }
         }
 
         // ── Numbered street props (Normalcy state) ──
@@ -194,6 +202,15 @@ public static class StreetBlockLayout
         go.transform.position += new Vector3(centerXZ.x - b.center.x, baseY - b.min.y, centerXZ.y - b.center.z);
         if (name != null) go.name = name;
         return go;
+    }
+
+    /// Shift on X so the bounds' max (or min) face lands exactly on x.
+    static void AlignX(GameObject go, float x, bool alignMax)
+    {
+        if (go == null) return;
+        var b = WorldBounds(go);
+        float delta = x - (alignMax ? b.max.x : b.min.x);
+        go.transform.position += new Vector3(delta, 0f, 0f);
     }
 
     static Bounds WorldBounds(GameObject go)
