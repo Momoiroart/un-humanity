@@ -105,6 +105,10 @@ namespace UnHumanity.Case
     /// Evidence is deliberately ambiguous between the two readings.
     public static class CaseUH001
     {
+        /// Taxonomy tag (GDD v0.4): flavor classification of the
+        /// phenomenon, independent of the player's hostile/remnant call.
+        public const string CaseType = "TEMPORAL RESIDUAL";
+
         public static CaseFile NewCaseFile() => new CaseFile(new[]
         {
             new Clue(ClueId.TheStop, "The stop",

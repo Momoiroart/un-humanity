@@ -130,10 +130,11 @@ public class CaseLogUI : MonoBehaviour
             classifyNote.text = done ? "" : (armed
                 ? "the file will accept a classification. It will accept exactly one."
                 : $"insufficient — {CaseFile.CluesToClassify} pieces required");
+            // the Type: taxonomy tag surfaces once the file is classified
             verdictStamp.text = file.Verdict switch
             {
-                Verdict.UnHumanity => "CLASSIFIED: UN-HUMANITY",
-                Verdict.Remnant => "CLASSIFIED: REMNANT",
+                Verdict.UnHumanity => $"CLASSIFIED: UN-HUMANITY — {CaseUH001.CaseType}",
+                Verdict.Remnant => $"CLASSIFIED: REMNANT — {CaseUH001.CaseType}",
                 _ => "",
             };
         }
