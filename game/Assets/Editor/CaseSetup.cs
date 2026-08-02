@@ -64,15 +64,17 @@ public static class CaseSetup
             marker.roseMat = roseMat;
             madeNodes.Add(n);
         }
-        // the stop cluster, spread along the sidewalk (Z 39.2 → 43.4)
-        Node(ClueId.Victim, "04_Victim", new Vector3(-5.6f, 0.5f, 39.2f));
-        Node(ClueId.TheStop, "01_TheStop", new Vector3(-4.6f, 0.5f, 41.2f), 1.6f);
-        Node(ClueId.Bench, "08_Bench", new Vector3(-6.9f, 0.5f, 41.9f), 1.6f);
-        Node(ClueId.Sediment, "15_Sediment", new Vector3(-7.9f, 0.5f, 43.4f), 1.6f);
-        // the spread-out three
+        // Spread down the whole block, every node OUTSIDE the anomaly
+        // field (r=5.5 around Z 41.5) — investigating must never
+        // force-start THE QUEUE. The stop evidence is read from vantage
+        // points at the field's edge.
         Node(ClueId.Witnesses, "06_WitnessA", new Vector3(-6.4f, 0.5f, 14f), 2.4f);
         Node(ClueId.Witnesses, "09_WitnessB", new Vector3(6.3f, 0.5f, 24f), 2.4f);
         Node(ClueId.Archive, "16_Archive", new Vector3(-6.8f, 0.5f, 28f), 2.0f);
+        Node(ClueId.Sediment, "15_Sediment", new Vector3(-7.8f, 0.5f, 31.5f), 1.8f);   // strata drift down the block
+        Node(ClueId.TheStop, "01_TheStop", new Vector3(5.6f, 0.5f, 34f), 2.0f);        // the vantage across the road
+        Node(ClueId.Bench, "08_Bench", new Vector3(-7.9f, 0.5f, 35.4f), 1.7f);         // field edge, west
+        Node(ClueId.Victim, "04_Victim", new Vector3(-5.2f, 0.5f, 35.8f), 1.7f);       // close enough to see her, not to join
 
         // ── controller ──
         var ctrlGo = new GameObject("CaseController");

@@ -25,7 +25,9 @@ public class ClueMarker : MonoBehaviour
 
         bool sight = controller.SightActive;
         bool collected = controller.File != null && controller.File.Has(node.clueId);
-        bool visible = !collected && (sight || node.respondsInNormalcy);
+        // markers exist only while Sight is held — the street never
+        // advertises its evidence to plain eyes
+        bool visible = !collected && sight;
 
         if (quad.enabled != visible) quad.enabled = visible;
         if (!visible) return;
