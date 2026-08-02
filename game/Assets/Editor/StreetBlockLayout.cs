@@ -50,17 +50,18 @@ public static class StreetBlockLayout
         // ── Roadway: 6 × RoadModule_8x8 down the corridor, plus one runoff
         //    module behind the spawn (Z -8..0) so the camera never sees the
         //    world end when the player walks back toward the block edge ──
-        // playable modules 0..5; the far strip (6..10) is visual only —
-        // in Normalcy you can SEE far down the road, the wall at Z=48 makes
-        // sure you can never go there
-        for (int i = -1; i < 11; i++)
+        // playable modules 0..5; everything past 5 is visual only — the
+        // street runs to Z≈128 so morning reads as a city that KEEPS GOING
+        // (real parallax, not a backdrop), melting into haze near the
+        // skyline cards at Z 130+. The wall at Z=48 still stops the player.
+        for (int i = -1; i < 16; i++)
             Place(road, "SM_RoadModule_8x8", new Vector3(-4f, -0.212f, i * 8f), 0);
 
         // 20 · crosswalk decal set near spawn, 6 mm above the road surface
         Place(road, "SM_CrosswalkDecal_Set", new Vector3(-2.7f, 0.006f, 1f), 0, "20_CrosswalkDecals");
 
         // ── Kerbs + gutters, both edges (runoff strip + far vista) ──
-        for (int i = -2; i < 22; i++)
+        for (int i = -2; i < 32; i++)
         {
             float z = i * 4f;
             Place(walkS, "SM_Curb_Straight_4m",  new Vector3(-4.311f, -0.212f, z), 0);
@@ -74,7 +75,7 @@ public static class StreetBlockLayout
         // outermost slab row, so kerb → slabs → building line is continuous.
         // Runs two extra rows into the runoff strip behind the spawn and
         // continues down the far vista strip (visual only past Z=48).
-        for (int i = -2; i < 22; i++)
+        for (int i = -2; i < 32; i++)
         {
             float z = i * 4f;
             foreach (float x in new[] { -8.3f, -7.3f, -6.3f, -5.3f })
@@ -88,7 +89,7 @@ public static class StreetBlockLayout
         // Fronts aligned to the building line (A and B differ in depth, so
         // anchor the street-facing face, not the back). One extra module
         // behind the spawn frames the runoff strip.
-        for (int i = -1; i < 22; i++)   // facades run the full vista
+        for (int i = -1; i < 32; i++)   // facades run the full vista
         {
             float z = i * 4f;
             string mesh = (i % 2 == 0) ? "SM_FacadeModule_A_Shop" : "SM_FacadeModule_B_Flats";
@@ -101,6 +102,35 @@ public static class StreetBlockLayout
                 AlignX(n, 8.03f, alignMax: false); // front face flush at +8.03
             }
         }
+
+        // ── Alley interior (z 32-36 north): the slot is intentional, the
+        //    see-through was not. A dark shadowbox recessed behind the
+        //    welded gate — sky must never show through the street wall ──
+        var alleyMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/StreetBlock/Materials/M_AlleyShadow.mat");
+        if (alleyMat == null)
+        {
+            alleyMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            AssetDatabase.CreateAsset(alleyMat, "Assets/Art/StreetBlock/Materials/M_AlleyShadow.mat");
+        }
+        alleyMat.SetColor("_BaseColor", new Color(0.155f, 0.13f, 0.15f));  // shaded brick, not a void
+        alleyMat.SetFloat("_Metallic", 0f);
+        alleyMat.SetFloat("_Smoothness", 0f);
+        EditorUtility.SetDirty(alleyMat);
+        void DarkBox(string name, Vector3 center, Vector3 size)
+        {
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.name = name;
+            Object.DestroyImmediate(box.GetComponent<BoxCollider>());
+            box.transform.SetParent(facadeN, false);
+            box.transform.position = center;
+            box.transform.localScale = size;
+            box.GetComponent<MeshRenderer>().sharedMaterial = alleyMat;
+        }
+        // low rear structure ~2.5 m in: the slot stays an alley (open sky
+        // above, between the neighbours' side walls) but never a window
+        // clean through the street wall at eye level
+        DarkBox("14_AlleyInterior_Back",  new Vector3(10.35f, 2.5f, 34f), new Vector3(0.3f, 5.0f, 4.0f));
+        DarkBox("14_AlleyInterior_Floor", new Vector3(9.15f, 0.32f, 34f), new Vector3(2.7f, 0.12f, 4.0f));
 
         // ── Numbered street props (Normalcy state) ──
         // 02 · streetlights ×3, south kerb line, arm over the road
@@ -133,13 +163,14 @@ public static class StreetBlockLayout
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(-7.4f, 18f), 0.411f, 30, "17_TrashBin_South");
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(7.2f, 39f), 0.411f, -120, "17_TrashBin_North");
 
-        // ── Far-vista dressing (Z 48-88, unreachable) — the street keeps
+        // ── Far-vista dressing (Z 48-128, unreachable) — the street keeps
         //    its rhythm past the wall so morning reads as a living city ──
-        foreach (float z in new[] { 56f, 72f, 88f })
+        foreach (float z in new[] { 56f, 72f, 88f, 104f, 120f })
             PlaceCenter(props, "SM_StreetLight_01", new Vector2(-4.7f, z), 0f, 90, $"V_StreetLight_z{z:0}");
-        foreach (float z in new[] { 60f, 84f })
+        foreach (float z in new[] { 60f, 84f, 108f })
             PlaceCenter(props, "SM_UtilityPole_01", new Vector2(4.8f, z), 0f, -90, $"V_UtilityPole_z{z:0}");
         Place(road, "SM_CrosswalkDecal_Set", new Vector3(-2.7f, 0.006f, 64f), 0, "V_CrosswalkDecals_Far");
+        Place(road, "SM_CrosswalkDecal_Set", new Vector3(-2.7f, 0.006f, 112f), 0, "V_CrosswalkDecals_Deep");
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(-7.3f, 62f), 0.411f, 15, "V_TrashBin_Far");
         PlaceCenter(props, "SM_RouteSign_01", new Vector2(5.5f, 70f), 0.411f, 0, "V_RouteSign_Far");
 

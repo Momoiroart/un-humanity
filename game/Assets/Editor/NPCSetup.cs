@@ -78,12 +78,16 @@ public static class NPCSetup
         Billboard("SPR_WitnessB", root, new Vector3(6.8f, 0.411f, 24.4f), "NPC_WitnessB");
 
         // background pedestrians on the far strip — alive by morning,
-        // gone under Sight (BackgroundWalker handles both)
+        // gone under Sight (BackgroundWalker handles both). Ranges reach
+        // deep into the vista so the crowd thins with distance, not with a
+        // hard line.
         var walkers = new (string sprite, float x, float z0, float z1, int dir, float speed)[]
         {
             ("SPR_WitnessA", -6.3f, 52f, 84f, 1, 1.0f),
-            ("SPR_WitnessB", 6.6f, 54f, 86f, -1, 1.3f),
-            ("SPR_Victim", -5.6f, 56f, 80f, 1, 0.8f),
+            ("SPR_WitnessB", 6.6f, 54f, 100f, -1, 1.3f),
+            ("SPR_Victim", -5.6f, 60f, 116f, 1, 0.8f),
+            ("SPR_WitnessA", 6.2f, 92f, 124f, 1, 0.9f),
+            ("SPR_WitnessB", -6.6f, 88f, 120f, -1, 1.1f),
         };
         foreach (var w in walkers)
         {

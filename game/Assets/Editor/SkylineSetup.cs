@@ -33,19 +33,19 @@ public static class SkylineSetup
             Object.DestroyImmediate(g);
         var root = new GameObject(kRoot).transform;
 
-        // three depths, all PAST the extended street (road + facades run to
-        // Z≈88) — a card inside the corridor reads as a wall across the road.
-        // The texture is a WHITE silhouette: SkylineStateTint owns the color
-        // (morning haze — farther = lighter — falling to near-black under
-        // Sight). `tint` here is only the material's fallback.
+        // three depths, all PAST the real streetscape (which now runs to
+        // Z≈128 — the illusion of continuity comes from REAL parallax
+        // geometry; these cards only close the last band at the horizon).
+        // LOW rooflines hugging eye level, tints stepping toward the fog
+        // color so the city melts into haze instead of standing up like a
+        // wall. The texture is a WHITE silhouette: SkylineStateTint owns
+        // the color (near-black under Sight). `tint` = material fallback.
         var rows = new (float z, float height, float width, float tint, float uTiling,
                         Color morning, Color sightDark)[]
         {
-            // clearly darker than the sky (0.88,0.79,0.82) so the rooftop
-            // line reads; still light enough to stay "distance", not "wall"
-            (92f, 16f, 110f, 1f, 3f, new Color(0.42f, 0.35f, 0.40f), new Color(0.045f, 0.022f, 0.040f)),
-            (102f, 24f, 150f, 1f, 4f, new Color(0.54f, 0.46f, 0.51f), new Color(0.035f, 0.018f, 0.032f)),
-            (114f, 32f, 190f, 1f, 5f, new Color(0.66f, 0.57f, 0.62f), new Color(0.028f, 0.015f, 0.026f)),
+            (130f, 10f, 240f, 1f, 4f, new Color(0.60f, 0.52f, 0.57f), new Color(0.045f, 0.022f, 0.040f)),
+            (134f, 14f, 300f, 1f, 5f, new Color(0.70f, 0.62f, 0.66f), new Color(0.035f, 0.018f, 0.032f)),
+            (138f, 20f, 360f, 1f, 6f, new Color(0.79f, 0.71f, 0.75f), new Color(0.028f, 0.015f, 0.026f)),
         };
         int i = 0;
         foreach (var (z, height, width, tint, uTiling, morning, sightDark) in rows)

@@ -25,7 +25,9 @@ public class SightState : MonoBehaviour
     [Header("Normalcy grade — a bright, ordinary morning")]
     public Color normalcyAmbient = new Color(0.60f, 0.53f, 0.57f);
     public Color normalcyFog = new Color(0.80f, 0.71f, 0.75f);
-    public float normalcyFogDensity = 0.0035f;   // see far down the road
+    public float normalcyFogDensity = 0.0055f;   // near field crisp; the far
+                                                 // street melts into haze so
+                                                 // the city reads as endless
 
     [Header("Sight grade — the morning is a lie; it is always the wait")]
     public Color sightAmbient = new Color(0.055f, 0.016f, 0.035f);
