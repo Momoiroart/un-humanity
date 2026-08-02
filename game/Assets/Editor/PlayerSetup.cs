@@ -103,13 +103,29 @@ public static class PlayerSetup
             if (rig == null) rig = cam.gameObject.AddComponent<CameraRigFollow>();
             rig.target = inst.transform;
             rig.sightState = state;
-            rig.pitch = 28f;      // Octopath 2 reference: the diorama look-down
-            rig.distance = 15f;
+            rig.pitch = 12f;      // the user's reference: low, behind the player,
+            rig.distance = 12f;   // looking DOWN the street — skyline in frame
+            rig.lookHeight = 1.4f;
+            rig.lateralFollow = 1f;
             cam.fieldOfView = 26f;
             cam.nearClipPlane = 1f;
-            cam.farClipPlane = 120f;
-            camNote = "rig wired (pitch 28, FOV 26, dist 15)";
+            cam.farClipPlane = 140f;
+            camNote = "rig wired (pitch 12, FOV 26, dist 12, street-level)";
         }
+
+        // ── self-heal: rebuilding the player must never orphan the systems
+        // that reference it (this exact bug killed all interactions once) ──
+        var caseCtrl = Object.FindFirstObjectByType<CaseController>();
+        if (caseCtrl != null)
+        {
+            var inter = inst.GetComponent<PlayerInteractor>();
+            if (inter == null) inter = inst.AddComponent<PlayerInteractor>();
+            inter.caseController = caseCtrl;
+        }
+        var trig = Object.FindFirstObjectByType<QueueTrigger>();
+        if (trig != null) trig.player = inst.transform;
+        var dread = Object.FindFirstObjectByType<ProximityDread>();
+        if (dread != null) dread.player = inst.transform;
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
