@@ -172,6 +172,90 @@ namespace UnHumanity.Combat.Tests
                 "waiting is exactly what it wants");
         }
 
+        // ── knowledge gating: understanding is the weapon ───────────────
+        [Test]
+        public void BlindEngagement_HasNoWinCondition_ItIsFunctionallyInvincible()
+        {
+            var f = new QueueEncounter(new CombatState(victimClock: 30,
+                knowledge: EncounterKnowledge.None));
+            f.RunRound(new HoldAction());                     // r1 theft
+            f.WaiterPhase();                                  // r2 deletion
+            Assert.IsFalse(new EscortStepAction().CanExecute(f.State), "victim unknown - no escort");
+            Assert.IsFalse(new RadioCheckInAction().CanExecute(f.State), "schedule unknown - no radio");
+            Assert.IsNull(f.ForecastNext(), "no forecast without the stop clue");
+            // even perfect order play cannot resolve an unclassified thing
+            int guard = 0;
+            while (f.State.Outcome == Outcome.Ongoing && guard++ < 12)
+            {
+                if (!f.State.PlayerTurnStolenThisRound && new FlareAction().CanExecute(f.State))
+                    f.PlayerPhase(new FlareAction());
+                else f.PlayerPhase(new HoldAction());
+                f.EndRound();
+                f.WaiterPhase();
+            }
+            Assert.AreNotEqual(Outcome.OrderReimposed, f.State.Outcome,
+                "unclassified = unresolvable, no matter how well you play");
+        }
+
+        [Test]
+        public void Withdraw_AlwaysWorks_EvenBlind_EvenWaiting()
+        {
+            var f = new QueueEncounter(new CombatState(knowledge: EncounterKnowledge.None));
+            f.RunRound(new HoldAction());
+            f.RunRound(new HoldAction());
+            f.WaiterPhase();                                  // r3: [WAITING]
+            Assert.IsTrue(f.State.Player.HasWaitingStatus);
+            Assert.IsTrue(f.PlayerPhase(new WithdrawAction()), "you can always stop waiting yourself");
+            Assert.AreEqual(Outcome.Withdrawn, f.State.Outcome);
+        }
+
+        [Test]
+        public void VictimClue_UnlocksEscort_ArchiveClue_UnlocksRadio()
+        {
+            var k = new EncounterKnowledge { KnowsVictim = true, KnowsSchedule = true };
+            var f = new QueueEncounter(new CombatState(victimClock: 30, knowledge: k));
+            f.RunRound(new HoldAction());                     // past the theft round
+            f.WaiterPhase();                                  // r2 deletion
+            Assert.IsTrue(new RadioCheckInAction().CanExecute(f.State));
+            f.PlayerPhase(new RadioCheckInAction());          // order for next round
+            f.EndRound();
+            f.WaiterPhase();                                  // suppressed
+            Assert.IsTrue(new EscortStepAction().CanExecute(f.State), "order holds + victim known");
+        }
+
+        [Test]
+        public void Classification_IsWhatMakesItResolvable()
+        {
+            var k = EncounterKnowledge.All;
+            k.Classified = false;
+            var f = new QueueEncounter(new CombatState(victimClock: 30, playerIsPhotographer: true, knowledge: k));
+            // identical play to SustainedOrder test, minus the verdict
+            int guard = 0;
+            while (f.State.Outcome == Outcome.Ongoing && guard++ < 14)
+            {
+                f.WaiterPhase();
+                if (!f.State.PlayerTurnStolenThisRound)
+                {
+                    if (f.State.Player.FilmRemaining > 0) f.PlayerPhase(new PhotographAction());
+                    else if (new RadioCheckInAction().CanExecute(f.State)) f.PlayerPhase(new RadioCheckInAction());
+                    else if (f.State.Player.Flares > 0) f.PlayerPhase(new FlareAction());
+                    else f.PlayerPhase(new HoldAction());
+                }
+                f.EndRound();
+            }
+            Assert.AreNotEqual(Outcome.OrderReimposed, f.State.Outcome,
+                "held order means nothing until you can NAME what you are holding it against");
+        }
+
+        [Test]
+        public void TheStopClue_ForecastsTheNextViolation()
+        {
+            var k = new EncounterKnowledge { KnowsTheStop = true };
+            var f = new QueueEncounter(new CombatState(knowledge: k));
+            f.WaiterPhase();                                  // r1 theft active
+            Assert.IsNotNull(f.ForecastNext(), "the stop clue reads the queue");
+        }
+
         // ── damage does not exist ───────────────────────────────────────
         [Test]
         public void ThereIsNoDamagePath()

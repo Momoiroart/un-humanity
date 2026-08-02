@@ -40,13 +40,16 @@ namespace UnHumanity.Combat
     }
 
     /// "A scheduled event forces a schedule." Restores the deleted counter.
+    /// Locked until the archive clue — you cannot invoke a schedule you
+    /// don't know existed.
     public sealed class RadioCheckInAction : PlayerAction
     {
         public const int Cooldown = 3;
         public override string Name => "Radio check-in";
         public override string Cost => $"action · {Cooldown}-round cooldown";
         public override bool PiercesWaiting => true;
-        public override bool CanExecute(CombatState s) => s.Player.RadioCooldown == 0;
+        public override bool CanExecute(CombatState s) =>
+            s.Knowledge.KnowsSchedule && s.Player.RadioCooldown == 0;
         public override void Execute(CombatState s)
         {
             s.Player.RadioCooldown = Cooldown;
@@ -79,10 +82,12 @@ namespace UnHumanity.Combat
     {
         public override string Name => "Escort";
         public override string Cost => "full turn";
-        // escort needs order to visibly hold THIS round: no active cheat,
-        // no [WAITING] on the player
+        // escort needs order to visibly hold THIS round — and it needs you
+        // to have UNDERSTOOD her (victim clue). You can't walk out someone
+        // you haven't seen.
         public override bool CanExecute(CombatState s) =>
-            s.ActiveIllegalMove == IllegalMove.None && !s.Player.HasWaitingStatus;
+            s.Knowledge.KnowsVictim
+            && s.ActiveIllegalMove == IllegalMove.None && !s.Player.HasWaitingStatus;
         public override void Execute(CombatState s)
         {
             s.EscortProgress++;
@@ -105,5 +110,21 @@ namespace UnHumanity.Combat
         public override bool CanExecute(CombatState s) => true;
         public override void Execute(CombatState s) =>
             s.Log.Add(new LogEvent(s.Player.Name, "waits. It approves."));
+    }
+
+    /// Step out of the field. Always available, pierces [WAITING] — you can
+    /// always stop waiting YOURSELF. No resolution; the wait continues
+    /// without you. This is how a blind engagement survives.
+    public sealed class WithdrawAction : PlayerAction
+    {
+        public override string Name => "Withdraw";
+        public override string Cost => "the case stays open";
+        public override bool PiercesWaiting => true;
+        public override bool CanExecute(CombatState s) => true;
+        public override void Execute(CombatState s)
+        {
+            s.Outcome = Outcome.Withdrawn;
+            s.Log.Add(new LogEvent(s.Player.Name, "steps out of the queue. It does not follow. It does not need to."));
+        }
     }
 }

@@ -10,6 +10,7 @@ public class CameraRigFollow : MonoBehaviour
 {
     public Transform target;
     public SightState sightState;
+    public Transform combatFocus;   // camera locks toward the stop during THE QUEUE
 
     [Header("Diorama framing (blueprint: ORTHO-BIAS · TILT 22 · FOV 26)")]
     public float pitch = 22f;
@@ -28,7 +29,8 @@ public class CameraRigFollow : MonoBehaviour
         if (target == null) return;
         float blend = sightState != null ? sightState.blend : 0f;
 
-        var aim = new Vector3(target.position.x * lateralFollow, lookHeight, target.position.z);
+        var focus = (QueueCombatUI.CombatActive && combatFocus != null) ? combatFocus : target;
+        var aim = new Vector3(focus.position.x * lateralFollow, lookHeight, focus.position.z);
         var back = Quaternion.Euler(pitch, 0f, 0f) * Vector3.back * distance;
         var desired = aim + back;
 

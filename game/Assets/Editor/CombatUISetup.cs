@@ -61,6 +61,10 @@ public static class CombatUISetup
         ui.queueOrder = Label(root, "QueueOrder", "QUEUE", 18, Fog, TextAnchor.MiddleCenter, new Vector2(0, -172), new Vector2(900, 28), anchorTop: true);
         ui.queueOrder.supportRichText = true;
 
+        // knowledge line — what the file lets this fight BE
+        ui.knowledgeLine = Label(root, "Knowledge", "", 15, Fog, TextAnchor.MiddleCenter, new Vector2(0, -202), new Vector2(1100, 24), anchorTop: true);
+        ui.knowledgeLine.supportRichText = true;
+
         // ── the Waiter panel + its EMPTY cost frame ──
         var wp = Panel(root, "WaiterPanel", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), Void_);
         wp.sizeDelta = new Vector2(360, 170); wp.anchoredPosition = new Vector2(200, 120);
@@ -100,14 +104,14 @@ public static class CombatUISetup
         }
         ui.logLines = lines.ToArray();
 
-        // ── action bar ──
-        string[] names = { "FLARE", "RADIO CHECK-IN", "PHOTOGRAPH", "ESCORT", "HOLD" };
+        // ── action bar (6: the kit + withdraw) ──
+        string[] names = { "FLARE", "RADIO CHECK-IN", "PHOTOGRAPH", "ESCORT", "HOLD", "WITHDRAW" };
         var btns = new List<Button>(); var bNames = new List<Text>(); var bCosts = new List<Text>();
         for (int i = 0; i < names.Length; i++)
         {
             var b = Panel(root, $"Action_{names[i]}", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Concrete);
             b.sizeDelta = new Vector2(250, 86);
-            b.anchoredPosition = new Vector2(-520 + i * 260, 66);
+            b.anchoredPosition = new Vector2(-650 + i * 260, 66);
             Border(b);
             var btn = b.gameObject.AddComponent<Button>();
             btn.targetGraphic = b.GetComponent<Image>();

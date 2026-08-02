@@ -104,11 +104,14 @@ namespace UnHumanity.Combat
                 return;
             }
 
-            // order streak: a clean, counted round moves the fight toward resolution
+            // order streak: a clean, counted round moves the fight toward
+            // resolution — but ONLY if the player has classified the thing.
+            // Un-understood, the wait has no failure condition: it is,
+            // functionally, invincible. Withdraw and learn.
             bool clean = s.CounterVisible && s.ActiveIllegalMove == IllegalMove.None
                          && !s.PlayerTurnStolenThisRound && !s.Player.HasWaitingStatus;
             s.OrderStreak = clean ? s.OrderStreak + 1 : 0;
-            if (s.OrderStreak >= s.OrderStreakToWin)
+            if (s.Knowledge.Classified && s.OrderStreak >= s.OrderStreakToWin)
             {
                 s.Outcome = Outcome.OrderReimposed;
                 s.Log.Add(new LogEvent("Resolution", "time holds. Long enough."));
@@ -125,6 +128,21 @@ namespace UnHumanity.Combat
             WaiterPhase();
             PlayerPhase(action);
             EndRound();
+        }
+
+        /// The stop clue teaches you to read the queue: what it will do
+        /// next round, if order isn't enforced. Null without the knowledge.
+        public string ForecastNext()
+        {
+            if (!State.Knowledge.KnowsTheStop) return null;
+            if (State.SuppressionRounds > 0) return "the queue holds — nothing bends next round";
+            return ScriptFor(State.InternalRound + 1) switch
+            {
+                IllegalMove.TurnTheft => "the queue bends — it will be ahead of you again",
+                IllegalMove.CounterDeletion => "the count is about to stop mattering",
+                IllegalMove.Waiting => "it is preparing to make you [WAITING]",
+                _ => null,
+            };
         }
     }
 }

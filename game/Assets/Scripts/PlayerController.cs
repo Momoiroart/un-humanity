@@ -43,6 +43,13 @@ public class PlayerController : MonoBehaviour
         var kb = Keyboard.current;
         var pad = Gamepad.current;
 
+        // turn-based combat freezes free movement; the UI holds Sight
+        if (QueueCombatUI.CombatActive)
+        {
+            CurrentSpeed = 0f;
+            return;
+        }
+
         Vector2 move = Vector2.zero;
         if (kb != null)
         {

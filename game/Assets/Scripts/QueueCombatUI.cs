@@ -33,11 +33,15 @@ public class QueueCombatUI : MonoBehaviour
     static readonly Color Anomaly = new Color32(0xE4, 0x56, 0x8A, 0xFF);
     static readonly Color Steel = new Color32(0x3A, 0x3F, 0x48, 0xFF);
 
+    public Text knowledgeLine;    // wired by CombatUISetup
+
     QueueEncounter fight;
     PlayerAction[] kit;
 
+    public static bool CombatActive { get; private set; }
     public bool EncounterRunning => fight != null;
     public CombatState StateForTests => fight?.State;
+    public SightState sightState; // held at full Sight during the encounter
 
     void Start()
     {
@@ -50,19 +54,27 @@ public class QueueCombatUI : MonoBehaviour
         var kb = Keyboard.current;
         if (kb != null && kb.tKey.wasPressedThisFrame)
         {
-            if (fight == null) StartEncounter(photographer: true);
+            if (fight == null) StartEncounter(photographer: true);   // debug: full knowledge
             else StopEncounter();
         }
+        // the stop only exists under Sight — combat holds the world there
+        if (fight != null && sightState != null && Application.isPlaying)
+            sightState.SetSight(Mathf.MoveTowards(sightState.blend, 1f, 2.5f * Time.deltaTime));
     }
 
-    public void StartEncounter(bool photographer)
+    public void StartEncounter(bool photographer) =>
+        StartEncounter(EncounterKnowledge.All, photographer);
+
+    public void StartEncounter(EncounterKnowledge knowledge, bool photographer)
     {
-        fight = new QueueEncounter(new CombatState(victimClock: 10, playerIsPhotographer: photographer));
+        fight = new QueueEncounter(new CombatState(victimClock: 10,
+            playerIsPhotographer: photographer, knowledge: knowledge));
         kit = new PlayerAction[]
         {
             new FlareAction(), new RadioCheckInAction(), new PhotographAction(),
-            new EscortStepAction(), new HoldAction(),
+            new EscortStepAction(), new HoldAction(), new WithdrawAction(),
         };
+        CombatActive = true;
         panelsRoot.SetActive(true);
         outcomeBanner.SetActive(false);
         fight.WaiterPhase();
@@ -72,6 +84,7 @@ public class QueueCombatUI : MonoBehaviour
     public void StopEncounter()
     {
         fight = null;
+        CombatActive = false;
         if (panelsRoot != null) panelsRoot.SetActive(false);
     }
 
@@ -107,6 +120,16 @@ public class QueueCombatUI : MonoBehaviour
             IllegalMove.Waiting => "[WAITING] — act after it acts. It does not act.",
             _ => "it waits.",
         };
+        var forecast = fight.ForecastNext();
+        if (forecast != null)
+            waiterStatus.text += $"\n<color=#E4568A>{forecast}</color>";
+
+        if (knowledgeLine != null)
+        {
+            knowledgeLine.text = s.Knowledge.Classified
+                ? "FILE CLASSIFIED — the wait can be made to END"
+                : "<color=#E4568A>UNCLASSIFIED — nothing you do here can resolve it</color>";
+        }
 
         for (int i = 0; i < victimCells.Length; i++)
         {
@@ -129,14 +152,17 @@ public class QueueCombatUI : MonoBehaviour
             else logLines[i].text = "";
         }
 
-        // action bar — names, live costs, gating
+        // action bar — names, live costs, gating; locked = knowledge missing
         string[] costs =
         {
             $"1 flare · {s.Player.Flares} left",
-            s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready · 3-round cooldown",
+            !s.Knowledge.KnowsSchedule ? "LOCKED — the transit archive"
+                : (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready · 3-round cooldown"),
             s.Player.HasCamera ? $"film {s.Player.FilmRemaining}" : "no camera",
-            $"{s.EscortProgress}/{s.EscortStepsNeeded} · needs order",
+            !s.Knowledge.KnowsVictim ? "LOCKED — the commuter"
+                : $"{s.EscortProgress}/{s.EscortStepsNeeded} · needs order",
             "your time",
+            "the case stays open",
         };
         for (int i = 0; i < actionButtons.Length; i++)
         {
@@ -158,8 +184,11 @@ public class QueueCombatUI : MonoBehaviour
                 Outcome.VictimEscorted => "SHE IS OUT OF THE QUEUE — AGED, ALIVE",
                 Outcome.OrderReimposed => "TIME HOLDS. LONG ENOUGH.",
                 Outcome.VictimLost => "FOR HER IT WAS TWENTY MINUTES. IT WAS NOT.",
+                Outcome.Withdrawn => "YOU STEP OUT. THE WAIT CONTINUES WITHOUT YOU.",
                 _ => "",
             };
+            if (s.Outcome == Outcome.Withdrawn && Application.isPlaying)
+                Invoke(nameof(StopEncounter), 2.2f);
         }
     }
 }

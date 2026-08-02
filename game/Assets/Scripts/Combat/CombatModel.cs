@@ -14,6 +14,23 @@ namespace UnHumanity.Combat
         VictimEscorted,   // walked her down the escort lane — true win
         OrderReimposed,   // held the schedule long enough to disengage/resolve
         VictimLost,       // her clock ran out
+        Withdrawn,        // stepped out of the field — no resolution, no shame
+    }
+
+    /// What the player UNDERSTANDS going into the fight. Knowledge is the
+    /// unlock: engage blind and the Waiter is functionally invincible —
+    /// you can poke at the wait, and you can leave.
+    public struct EncounterKnowledge
+    {
+        public bool KnowsVictim;      // Victim clue  -> Escort available
+        public bool KnowsSchedule;    // Archive clue -> Radio check-in works
+        public bool KnowsTheStop;     // TheStop clue -> its next move is forecast
+        public bool Classified;      // a verdict    -> the fight can RESOLVE at all
+
+        public static EncounterKnowledge All => new EncounterKnowledge
+        { KnowsVictim = true, KnowsSchedule = true, KnowsTheStop = true, Classified = true };
+
+        public static EncounterKnowledge None => new EncounterKnowledge();
     }
 
     /// The Waiter's rule-breaks — each one reads as a VIOLATION in the UI.
@@ -82,10 +99,12 @@ namespace UnHumanity.Combat
         public readonly int OrderStreakToWin;
 
         public Outcome Outcome = Outcome.Ongoing;
+        public EncounterKnowledge Knowledge;
 
         public CombatState(int victimClock = 10, int escortSteps = 4, int orderStreakToWin = 3,
-                           bool playerIsPhotographer = false)
+                           bool playerIsPhotographer = false, EncounterKnowledge? knowledge = null)
         {
+            Knowledge = knowledge ?? EncounterKnowledge.All;
             Player = new Combatant("Agent", isPlayer: true) { Flares = 2, HasCamera = playerIsPhotographer, FilmRemaining = playerIsPhotographer ? 1 : 0 };
             Waiter = new Combatant("The Waiter", isPlayer: false);
             Victim = new Combatant("The Commuter", isPlayer: false);
