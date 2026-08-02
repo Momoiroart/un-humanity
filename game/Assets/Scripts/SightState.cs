@@ -34,6 +34,37 @@ public class SightState : MonoBehaviour
 
     [Range(0f, 1f)] public float blend;
 
+    [Header("Sight cost — it drains while held (UH-001 shift trigger note)")]
+    public float meterMax = 100f;
+    public float drainPerSecond = 14f;
+    public float regenPerSecond = 22f;
+    public float lockoutUntil = 25f;    // once emptied, recover to this before re-use
+    public float blendSpeed = 3f;
+    public float Meter { get; private set; } = 100f;
+    public bool LockedOut { get; private set; }
+
+    /// Per-frame drive from the player: hold intent + dt. Handles the
+    /// drain, the empty-lockout, and the blend easing, then applies.
+    public void Tick(bool wantSight, float dt)
+    {
+        if (LockedOut && Meter >= lockoutUntil) LockedOut = false;
+        bool effective = wantSight && !LockedOut && Meter > 0f;
+
+        if (effective)
+        {
+            Meter = Mathf.Max(0f, Meter - drainPerSecond * dt);
+            if (Meter <= 0f) { LockedOut = true; effective = false; }
+        }
+        else
+        {
+            Meter = Mathf.Min(meterMax, Meter + regenPerSecond * dt);
+        }
+
+        float target = effective ? 1f : 0f;
+        float b = Mathf.MoveTowards(blend, target, blendSpeed * dt);
+        if (!Mathf.Approximately(b, blend)) SetSight(b);
+    }
+
     public void SetSight(float t)
     {
         blend = Mathf.Clamp01(t);

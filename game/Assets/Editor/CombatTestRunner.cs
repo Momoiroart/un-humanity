@@ -45,7 +45,7 @@ public static class CombatTestRunner
         api.Execute(new ExecutionSettings(new Filter
         {
             testMode = TestMode.EditMode,
-            assemblyNames = new[] { "UnHumanity.Combat.Tests" },
+            assemblyNames = new[] { "UnHumanity.Combat.Tests" }, // holds both combat and case suites
         }));
         return "combat tests started — poll Logs/combat-tests.txt";
     }

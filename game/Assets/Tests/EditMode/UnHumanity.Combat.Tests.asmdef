@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "UnHumanity.Combat"
+        "UnHumanity.Combat",
+        "UnHumanity.Case"
     ],
     "includePlatforms": [
         "Editor"

@@ -73,9 +73,7 @@ public class PlayerController : MonoBehaviour
         {
             bool hold = (kb != null && kb.eKey.isPressed)
                      || (pad != null && pad.buttonWest.isPressed);
-            float target = hold ? 1f : 0f;
-            float b = Mathf.MoveTowards(sightState.blend, target, sightBlendSpeed * Time.deltaTime);
-            if (!Mathf.Approximately(b, sightState.blend)) sightState.SetSight(b);
+            sightState.Tick(hold, Time.deltaTime);   // Sight drains while held
         }
     }
 }
