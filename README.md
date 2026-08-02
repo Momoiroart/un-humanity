@@ -63,6 +63,7 @@ Development is logged in [`/devlogs`](devlogs) and mirrored to
 |---|-------|
 | 000 | [First Disclosure](devlogs/000-first-disclosure.md) |
 | 001 | [The File Has a Genre](devlogs/001-the-file-has-a-genre.md) |
+| 002 | [The Fight You Cannot Win by Damage](devlogs/002-the-fight-you-cannot-win-by-damage.md) |
 
 ## Status
 
