@@ -150,17 +150,19 @@ public static class StreetBlockLayout
         Marker(markers, "CameraRig_FollowTarget", new Vector3(0f, 1.2f, 3f));
 
         // ── SIGHT STATE (blueprint rose entries — root stays disabled) ──
-        // The stop manifests at 41 m (forced approach) on the player's side.
-        PlaceCenter(sight, "SM_BusStopSign_01", new Vector2(-4.8f, 41.2f), 0.411f, 90, "07_BusStopSign_1974");
-        PlaceCenter(sight, "SM_TimetableCase_01", new Vector2(-7.7f, 41.8f), 0.411f, 90, "07_Timetable_Route9");
-        PlaceCenter(sight, "SM_Bench_Aged", new Vector2(-6.5f, 41.5f), 0.411f, -90, "08_Bench_Aged");
-        Marker(sight, "04_VictimPosition_Seated", new Vector3(-6.5f, 0.85f, 41.2f));
-        var anchor = Marker(sight, "05_WaiterAnchor_NEGATIVE_SILHOUETTE — DO NOT REMOVE", new Vector3(-6.2f, 0.411f, 41.5f));
+        // The stop manifests in the MIDDLE OF THE ROAD at the far end,
+        // facing back down the street. Under Sight the road doesn't
+        // continue — the wait is where the road was going.
+        PlaceCenter(sight, "SM_BusStopSign_01", new Vector2(-1.6f, 46.2f), 0f, 180, "07_BusStopSign_1974");
+        PlaceCenter(sight, "SM_TimetableCase_01", new Vector2(2.1f, 47.2f), 0f, 180, "07_Timetable_Route9");
+        PlaceCenter(sight, "SM_Bench_Aged", new Vector2(0.5f, 46.8f), 0f, 180, "08_Bench_Aged");
+        Marker(sight, "04_VictimPosition_Seated", new Vector3(0.5f, 0.5f, 46.6f));
+        var anchor = Marker(sight, "05_WaiterAnchor_NEGATIVE_SILHOUETTE — DO NOT REMOVE", new Vector3(0f, 0.05f, 46.4f));
         AddSphere(anchor, 3.0f, "AnomalyField_Inner_r3.0");
         AddSphere(anchor, 5.5f, "AnomalyField_Outer_r5.5");
-        Marker(sight, "15_Sediment_NewspaperStrata_Oct1974", new Vector3(-7.8f, 0.411f, 42.6f));
-        Marker(sight, "18_ShelterCanopyFootprint", new Vector3(-6.6f, 0.411f, 40.6f));
-        Marker(sight, "TimeResidue_QueueMarks_Start", new Vector3(-5.6f, 0.411f, 39.5f));
+        Marker(sight, "15_Sediment_NewspaperStrata_Oct1974", new Vector3(1.4f, 0.05f, 47.6f));
+        Marker(sight, "18_ShelterCanopyFootprint", new Vector3(0.2f, 0.05f, 46f));
+        Marker(sight, "TimeResidue_QueueMarks_Start", new Vector3(0f, 0.05f, 43.5f));
         sight.gameObject.SetActive(false);
 
         EditorSceneManager.MarkSceneDirty(scene);

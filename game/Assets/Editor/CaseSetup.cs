@@ -68,13 +68,15 @@ public static class CaseSetup
         // field (r=5.5 around Z 41.5) — investigating must never
         // force-start THE QUEUE. The stop evidence is read from vantage
         // points at the field's edge.
+        // (the stop now manifests mid-road at the far end, ~Z 46.4; the
+        // inner field is r=3.0 — all vantage nodes stay well outside it)
         Node(ClueId.Witnesses, "06_WitnessA", new Vector3(-6.4f, 0.5f, 14f), 2.4f);
         Node(ClueId.Witnesses, "09_WitnessB", new Vector3(6.3f, 0.5f, 24f), 2.4f);
         Node(ClueId.Archive, "16_Archive", new Vector3(-6.8f, 0.5f, 28f), 2.0f);
-        Node(ClueId.Sediment, "15_Sediment", new Vector3(-7.8f, 0.5f, 31.5f), 1.8f);   // strata drift down the block
-        Node(ClueId.TheStop, "01_TheStop", new Vector3(5.6f, 0.5f, 34f), 2.0f);        // the vantage across the road
-        Node(ClueId.Bench, "08_Bench", new Vector3(-7.9f, 0.5f, 35.4f), 1.7f);         // field edge, west
-        Node(ClueId.Victim, "04_Victim", new Vector3(-5.2f, 0.5f, 35.8f), 1.7f);       // close enough to see her, not to join
+        Node(ClueId.Sediment, "15_Sediment", new Vector3(-7.8f, 0.5f, 32f), 1.8f);    // strata drift down the block
+        Node(ClueId.TheStop, "01_TheStop", new Vector3(5.8f, 0.5f, 37f), 2.0f);       // vantage from the north sidewalk
+        Node(ClueId.Bench, "08_Bench", new Vector3(-4.6f, 0.5f, 41f), 1.8f);          // kerb edge, looking up the road
+        Node(ClueId.Victim, "04_Victim", new Vector3(3.9f, 0.5f, 42f), 1.8f);         // close enough to see her, not to join
 
         // ── controller ──
         var ctrlGo = new GameObject("CaseController");

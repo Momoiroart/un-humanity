@@ -55,6 +55,7 @@ public static class PlayerSetup
         var root = new GameObject("Player");
         var cc = root.AddComponent<CharacterController>();
         cc.height = 1.7f; cc.center = new Vector3(0f, 0.85f, 0f); cc.radius = 0.3f;
+        cc.stepOffset = 0.5f;   // the kerb is 0.41 m — crossing road<->sidewalk must just work
         var pc = root.AddComponent<PlayerController>();
 
         var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
@@ -102,12 +103,12 @@ public static class PlayerSetup
             if (rig == null) rig = cam.gameObject.AddComponent<CameraRigFollow>();
             rig.target = inst.transform;
             rig.sightState = state;
-            rig.pitch = 22f;
-            rig.distance = 16f;   // closer diorama: player ~23% of frame height
+            rig.pitch = 18f;      // Octopath reference: shallow, ground-level intimacy
+            rig.distance = 13f;
             cam.fieldOfView = 26f;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 120f;
-            camNote = "rig wired (pitch 22, FOV 26, dist 16)";
+            camNote = "rig wired (pitch 18, FOV 26, dist 13)";
         }
 
         EditorSceneManager.MarkSceneDirty(scene);

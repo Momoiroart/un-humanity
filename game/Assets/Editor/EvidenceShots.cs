@@ -46,8 +46,8 @@ public static class EvidenceShots
             File.WriteAllBytes(Path.GetFullPath($"{kDir}/EV_{name}.png"), tex.EncodeToPNG());
         }
 
-        Shot("Bench", new Vector3(-4.4f, 1.35f, 40.2f), new Vector3(-6.6f, 0.75f, 41.9f));
-        Shot("Sediment", new Vector3(-6.9f, 1.9f, 41.6f), new Vector3(-7.9f, 0.42f, 42.9f));
+        Shot("Bench", new Vector3(-1.8f, 1.35f, 44.6f), new Vector3(0.5f, 0.7f, 46.8f));
+        Shot("Sediment", new Vector3(0.2f, 1.9f, 46.2f), new Vector3(1.5f, 0.3f, 47.7f));
         Shot("Archive", new Vector3(-5.0f, 1.55f, 26.9f), new Vector3(-6.9f, 1.45f, 28.1f));
 
         state.SetSight(prevBlend);

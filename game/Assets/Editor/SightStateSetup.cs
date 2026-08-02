@@ -111,7 +111,7 @@ public static class SightStateSetup
             if (oldGlow != null) Object.DestroyImmediate(oldGlow.gameObject);
             var glowGo = new GameObject("AnomalyGlow");
             glowGo.transform.SetParent(sightRoot.transform, false);
-            glowGo.transform.position = new Vector3(-6.2f, 1.7f, 41.5f);
+            glowGo.transform.position = new Vector3(0f, 1.8f, 46.4f);   // mid-road, where the road was going
             var glow = glowGo.AddComponent<Light>();
             glow.type = LightType.Point;
             glow.color = new Color32(0xE4, 0x56, 0x8A, 0xFF);   // the anomaly's rose
