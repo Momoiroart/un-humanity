@@ -47,15 +47,17 @@ public static class StreetBlockLayout
         var markers   = Group(root, "MARKERS");
         var sight     = Group(root, "SIGHT_STATE — spawned, not hidden");
 
-        // ── Roadway: 6 × RoadModule_8x8 down the corridor ──
-        for (int i = 0; i < 6; i++)
+        // ── Roadway: 6 × RoadModule_8x8 down the corridor, plus one runoff
+        //    module behind the spawn (Z -8..0) so the camera never sees the
+        //    world end when the player walks back toward the block edge ──
+        for (int i = -1; i < 6; i++)
             Place(road, "SM_RoadModule_8x8", new Vector3(-4f, -0.212f, i * 8f), 0);
 
         // 20 · crosswalk decal set near spawn, 6 mm above the road surface
         Place(road, "SM_CrosswalkDecal_Set", new Vector3(-2.7f, 0.006f, 1f), 0, "20_CrosswalkDecals");
 
-        // ── Kerbs + gutters, both edges, 12 × 4 m each ──
-        for (int i = 0; i < 12; i++)
+        // ── Kerbs + gutters, both edges (incl. the runoff strip) ──
+        for (int i = -2; i < 12; i++)
         {
             float z = i * 4f;
             Place(walkS, "SM_Curb_Straight_4m",  new Vector3(-4.311f, -0.212f, z), 0);
@@ -67,7 +69,8 @@ public static class StreetBlockLayout
         // ── Sidewalk slabs (tops flush with kerb at Y≈0.411) ──
         // Full 4 m width BOTH sides per the sheet; facade fronts sit on the
         // outermost slab row, so kerb → slabs → building line is continuous.
-        for (int i = 0; i < 12; i++)
+        // Runs two extra rows into the runoff strip behind the spawn.
+        for (int i = -2; i < 12; i++)
         {
             float z = i * 4f;
             foreach (float x in new[] { -8.3f, -7.3f, -6.3f, -5.3f })
@@ -79,8 +82,9 @@ public static class StreetBlockLayout
         // ── Facade lines: alternate A (shop) / B (flats); north keeps a gap
         //    at Z 32-36 for 14 · the blocked maintenance alley ──
         // Fronts aligned to the building line (A and B differ in depth, so
-        // anchor the street-facing face, not the back).
-        for (int i = 0; i < 12; i++)
+        // anchor the street-facing face, not the back). One extra module
+        // behind the spawn frames the runoff strip.
+        for (int i = -1; i < 12; i++)
         {
             float z = i * 4f;
             string mesh = (i % 2 == 0) ? "SM_FacadeModule_A_Shop" : "SM_FacadeModule_B_Flats";
@@ -124,6 +128,13 @@ public static class StreetBlockLayout
         // 17 · trash bins ×2 (lid open)
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(-7.4f, 18f), 0.411f, 30, "17_TrashBin_South");
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(7.2f, 39f), 0.411f, -120, "17_TrashBin_North");
+
+        // ── Invisible boundary walls: the player cannot leave the block ──
+        var bounds = Group(root, "BOUNDS (invisible)");
+        Wall(bounds, "Wall_Rear",  new Vector3(0f, 1.6f, -0.4f),  new Vector3(18f, 3.2f, 0.5f));
+        Wall(bounds, "Wall_Far",   new Vector3(0f, 1.6f, 48.4f),  new Vector3(18f, 3.2f, 0.5f));
+        Wall(bounds, "Wall_South", new Vector3(-8.5f, 1.6f, 24f), new Vector3(0.5f, 3.2f, 100f));
+        Wall(bounds, "Wall_North", new Vector3(8.5f, 1.6f, 24f),  new Vector3(0.5f, 3.2f, 100f));
 
         // ── Markers (gameplay anchors, no meshes) ──
         // Spawn mid-road on the crosswalk — the poster's opening frame.
@@ -229,6 +240,15 @@ public static class StreetBlockLayout
         go.transform.SetParent(parent, false);
         go.transform.position = pos;
         return go;
+    }
+
+    static void Wall(Transform parent, string name, Vector3 center, Vector3 size)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        go.transform.position = center;
+        var c = go.AddComponent<BoxCollider>();
+        c.size = size;               // solid, not a trigger — it blocks
     }
 
     static void AddBox(GameObject go, Vector3 size)

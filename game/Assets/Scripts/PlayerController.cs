@@ -21,11 +21,25 @@ public class PlayerController : MonoBehaviour
     CharacterController cc;
     float fall;
     float facing = 1f;
+    Vector3 respawnPoint;
 
-    void Awake() => cc = GetComponent<CharacterController>();
+    void Awake()
+    {
+        cc = GetComponent<CharacterController>();
+        respawnPoint = transform.position;
+    }
 
     void Update()
     {
+        // kill-plane insurance: no hole may ever swallow the player
+        if (transform.position.y < -5f)
+        {
+            cc.enabled = false;
+            transform.position = respawnPoint;
+            fall = 0f;
+            cc.enabled = true;
+        }
+
         var kb = Keyboard.current;
         var pad = Gamepad.current;
 
