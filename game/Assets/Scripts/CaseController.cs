@@ -8,6 +8,8 @@ public class CaseController : MonoBehaviour
 {
     public SightState sightState;
     public CaseLogUI ui;
+    public ReadingUI reading;
+    public Texture2D[] evidenceImages;   // catalog order, wired by CaseSetup
 
     CaseFile file;
     public CaseFile File
@@ -36,11 +38,23 @@ public class CaseController : MonoBehaviour
     {
         if (node == null || File == null) return;
         int logBefore = File.Log.Count;
-        File.Collect(node.clueId, SightActive);
+        bool changed = File.Collect(node.clueId, SightActive);
         if (ui != null)
         {
             if (File.Log.Count > logBefore) ui.Toast(File.Log[File.Log.Count - 1]);
             ui.Refresh();
+        }
+
+        // A successful collect — or a re-read of evidence already in the
+        // file — opens the record itself. Refusals only toast.
+        var got = File.Get(node.clueId);
+        if (got != null && reading != null && (changed || got != null))
+        {
+            Texture2D img = null;
+            int idx = (int)node.clueId;
+            if (evidenceImages != null && idx >= 0 && idx < evidenceImages.Length)
+                img = evidenceImages[idx];
+            reading.Show(got.Clue.Title, got.Text, got.UnderSight, img);
         }
     }
 

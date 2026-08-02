@@ -31,9 +31,15 @@ public static class CaseSetup
                  .Where(g => g.name == "CASE_Nodes" || g.name == "UI_Case" || g.name == "CaseController"))
             Object.DestroyImmediate(g);
 
-        // ── clue nodes on their street marks (blueprint §1) ──
+        // ── marker materials (unlit, palette-locked) ──
+        var fogMat = MarkerMat("Assets/Art/Evidence/M_Marker_Fog.mat", new Color32(0xE7, 0xE9, 0xEC, 0xFF)); // paper - reads at diorama distance
+        var roseMat = MarkerMat("Assets/Art/Evidence/M_Marker_Rose.mat", new Color32(0xFB, 0x8F, 0xBC, 0xFF)); // lightened rose - must read against the anomaly pool
+
+        // ── clue nodes on their street marks (blueprint §1), spread so no
+        //    two prompts fight; each carries a floating diamond marker ──
         var nodesRoot = new GameObject("CASE_Nodes").transform;
-        void Node(ClueId id, string label, Vector3 pos, float radius = 2.2f)
+        var madeNodes = new List<ClueNode>();
+        void Node(ClueId id, string label, Vector3 pos, float radius = 1.8f)
         {
             var go = new GameObject($"Clue_{label}");
             go.transform.SetParent(nodesRoot, false);
@@ -41,14 +47,32 @@ public static class CaseSetup
             var n = go.AddComponent<ClueNode>();
             n.clueId = id;
             n.radius = radius;
+
+            var markGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            markGo.name = "Marker";
+            Object.DestroyImmediate(markGo.GetComponent<MeshCollider>());
+            markGo.transform.SetParent(go.transform, false);
+            markGo.transform.localPosition = new Vector3(0f, 1.7f, 0f);
+            markGo.transform.localScale = new Vector3(0.34f, 0.34f, 1f);
+            var mr = markGo.GetComponent<MeshRenderer>();
+            mr.sharedMaterial = fogMat;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            var marker = markGo.AddComponent<ClueMarker>();
+            marker.node = n;
+            marker.quad = mr;
+            marker.fogMat = fogMat;
+            marker.roseMat = roseMat;
+            madeNodes.Add(n);
         }
-        Node(ClueId.TheStop, "01_TheStop", new Vector3(-4.8f, 0.5f, 41.2f));
-        Node(ClueId.Witnesses, "06_WitnessA", new Vector3(-6.4f, 0.5f, 14f), 2.5f);
-        Node(ClueId.Witnesses, "09_WitnessB", new Vector3(6.3f, 0.5f, 24f), 2.5f);
-        Node(ClueId.Bench, "08_Bench", new Vector3(-6.6f, 0.5f, 41.8f));
-        Node(ClueId.Sediment, "15_Sediment", new Vector3(-7.8f, 0.5f, 42.8f), 1.8f);
-        Node(ClueId.Archive, "16_Archive", new Vector3(-6.8f, 0.5f, 28f));
-        Node(ClueId.Victim, "04_Victim", new Vector3(-6.3f, 0.5f, 40.6f), 1.8f);
+        // the stop cluster, spread along the sidewalk (Z 39.2 → 43.4)
+        Node(ClueId.Victim, "04_Victim", new Vector3(-5.6f, 0.5f, 39.2f));
+        Node(ClueId.TheStop, "01_TheStop", new Vector3(-4.6f, 0.5f, 41.2f), 1.6f);
+        Node(ClueId.Bench, "08_Bench", new Vector3(-6.9f, 0.5f, 41.9f), 1.6f);
+        Node(ClueId.Sediment, "15_Sediment", new Vector3(-7.9f, 0.5f, 43.4f), 1.6f);
+        // the spread-out three
+        Node(ClueId.Witnesses, "06_WitnessA", new Vector3(-6.4f, 0.5f, 14f), 2.4f);
+        Node(ClueId.Witnesses, "09_WitnessB", new Vector3(6.3f, 0.5f, 24f), 2.4f);
+        Node(ClueId.Archive, "16_Archive", new Vector3(-6.8f, 0.5f, 28f), 2.0f);
 
         // ── controller ──
         var ctrlGo = new GameObject("CaseController");
@@ -148,6 +172,42 @@ public static class CaseSetup
 
         ui.panelRoot = panel.gameObject;
 
+        // ── the evidence record (reading panel) ──
+        var reading = canvasGo.AddComponent<ReadingUI>();
+        var rp = Panel(canvasGo.transform, "ReadingPanel", Void_);
+        Anchor(rp, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
+        rp.sizeDelta = new Vector2(720, 620);
+        rp.anchoredPosition = new Vector2(-140, 10);
+        Outline(rp);
+        Strip(rp, "Accent", 2, 308, Anomaly);
+        var photoGo = new GameObject("Photo", typeof(RectTransform), typeof(RawImage));
+        var photoRt = (RectTransform)photoGo.transform;
+        photoRt.SetParent(rp, false);
+        Anchor(photoRt, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+        photoRt.sizeDelta = new Vector2(656, 330);
+        photoRt.anchoredPosition = new Vector2(0, -20);
+        reading.photo = photoGo.GetComponent<RawImage>();
+        reading.title = Label(rp, "Title", "", 24, Paper, TextAnchor.UpperLeft, new Vector2(32, -366), new Vector2(500, 30));
+        reading.stateTag = Label(rp, "Tag", "", 13, Fog, TextAnchor.UpperLeft, new Vector2(32, -398), new Vector2(400, 18));
+        reading.body = Label(rp, "Body", "", 18, Fog, TextAnchor.UpperLeft, new Vector2(32, -426), new Vector2(656, 150));
+        reading.body.horizontalOverflow = HorizontalWrapMode.Wrap;
+        reading.body.color = Paper;
+        Label(rp, "CloseHint", "F — CLOSE RECORD", 13, Fog, TextAnchor.LowerRight, new Vector2(-24, 14), new Vector2(300, 18), pivotRight: true);
+        reading.panelRoot = rp.gameObject;
+        rp.gameObject.SetActive(false);
+
+        // evidence textures, catalog order (TheStop, Witnesses, Bench, Sediment, Archive, Victim)
+        var evidence = new[]
+        {
+            AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Evidence/EV_TheStop.png"),
+            AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Evidence/EV_Witnesses.png"),
+            AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Evidence/EV_Bench.png"),
+            AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Evidence/EV_Sediment.png"),
+            AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Evidence/EV_Archive.png"),
+            AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Evidence/EV_Victim.png"),
+        };
+        int missingEv = evidence.Count(e => e == null);
+
         // ── wiring ──
         var player = GameObject.Find("Player");
         PlayerInteractor inter = null;
@@ -158,17 +218,35 @@ public static class CaseSetup
             inter.caseController = ctrl;
         }
         ctrl.ui = ui;
+        ctrl.reading = reading;
+        ctrl.evidenceImages = evidence;
         ui.controller = ctrl;
         ui.sightState = ctrl.sightState;
         ui.interactor = inter;
+        foreach (var n in madeNodes)
+            n.GetComponentInChildren<ClueMarker>(true).controller = ctrl;
         panel.gameObject.SetActive(false);
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        return $"case layer built: 7 nodes, controller, HUD + dossier panel{(player == null ? " WARNING: no player" : "")}";
+        return $"case layer built: 7 nodes + markers, reading panel, evidence wired ({6 - missingEv}/6 images)"
+             + (player == null ? " WARNING: no player" : "");
     }
 
     // helpers
+    static Material MarkerMat(string path, Color color)
+    {
+        var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (m == null)
+        {
+            m = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            AssetDatabase.CreateAsset(m, path);
+        }
+        m.SetColor("_BaseColor", color);
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
     static RectTransform Panel(Transform parent, string name, Color color)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(Image));

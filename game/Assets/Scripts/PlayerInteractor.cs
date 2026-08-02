@@ -15,6 +15,17 @@ public class PlayerInteractor : MonoBehaviour
         Current = null;
         if (caseController == null) return;
 
+        // an open record captures F: close it, don't re-collect
+        if (caseController.reading != null && caseController.reading.IsOpen)
+        {
+            var kbd = Keyboard.current;
+            var gp = Gamepad.current;
+            if ((kbd != null && (kbd.fKey.wasPressedThisFrame || kbd.escapeKey.wasPressedThisFrame))
+                || (gp != null && (gp.buttonSouth.wasPressedThisFrame || gp.buttonEast.wasPressedThisFrame)))
+                caseController.reading.Close();
+            return;
+        }
+
         float best = float.MaxValue;
         bool sight = caseController.SightActive;
         foreach (var node in ClueNode.All)
