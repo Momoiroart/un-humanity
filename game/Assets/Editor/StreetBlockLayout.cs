@@ -126,7 +126,8 @@ public static class StreetBlockLayout
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(7.2f, 39f), 0.411f, -120, "17_TrashBin_North");
 
         // ── Markers (gameplay anchors, no meshes) ──
-        Marker(markers, "01_PlayerSpawn", new Vector3(-6f, 0.411f, 0.5f));
+        // Spawn mid-road on the crosswalk — the poster's opening frame.
+        Marker(markers, "01_PlayerSpawn", new Vector3(0f, 0.05f, 3f));
         var spawnCol = Marker(markers, "SpawnCollider", new Vector3(-6f, 1.4f, 0f));
         AddBox(spawnCol, new Vector3(4f, 2.8f, 0.5f));
         var exitS = Marker(markers, "BlockExitCollider_South", new Vector3(-6f, 1.4f, 48f));
@@ -135,7 +136,7 @@ public static class StreetBlockLayout
         AddBox(exitR, new Vector3(8f, 2.8f, 0.5f));
         Marker(markers, "06_WitnessA_DialogueNode", new Vector3(-6.4f, 0.411f, 14f));
         Marker(markers, "09_WitnessB_DialogueNode", new Vector3(6.3f, 0.411f, 24f));
-        Marker(markers, "CameraRig_FollowTarget", new Vector3(-6f, 1.2f, 0.5f));
+        Marker(markers, "CameraRig_FollowTarget", new Vector3(0f, 1.2f, 3f));
 
         // ── SIGHT STATE (blueprint rose entries — root stays disabled) ──
         // The stop manifests at 41 m (forced approach) on the player's side.

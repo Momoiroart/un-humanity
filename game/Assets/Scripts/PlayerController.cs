@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     public SightState sightState;
     public float sightBlendSpeed = 3f;
 
+    public float CurrentSpeed { get; private set; }
+
     CharacterController cc;
     float fall;
     float facing = 1f;
@@ -39,6 +41,7 @@ public class PlayerController : MonoBehaviour
         move = Vector2.ClampMagnitude(move, 1f);
 
         // world axes: X across the street, Z up the travel axis
+        CurrentSpeed = move.magnitude * walkSpeed;
         var wish = new Vector3(move.x, 0f, move.y) * walkSpeed;
         fall = cc.isGrounded ? -1f : fall - gravity * Time.deltaTime;
         wish.y = fall;

@@ -43,6 +43,9 @@ public static class PlayerSetup
         mat.SetFloat("_AlphaClip", 1f);
         mat.SetFloat("_Cutoff", 0.5f);
         mat.EnableKeyword("_ALPHATEST_ON");
+        // sheet is 4x2 — default view = idle frame 0 (bottom-left cell)
+        mat.SetTextureScale("_BaseMap", new Vector2(0.25f, 0.5f));
+        mat.SetTextureOffset("_BaseMap", Vector2.zero);
         EditorUtility.SetDirty(mat);
 
         // player prefab: controller root + leaning billboard quad
@@ -66,6 +69,9 @@ public static class PlayerSetup
         mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
         quad.AddComponent<BillboardY>();
         pc.spriteQuad = quad.transform;
+        var anim = root.AddComponent<SpriteAnimator>();
+        anim.controller = pc;
+        anim.quad = mr;
 
         PrefabUtility.SaveAsPrefabAsset(root, kPrefab);
         Object.DestroyImmediate(root);
@@ -96,10 +102,12 @@ public static class PlayerSetup
             if (rig == null) rig = cam.gameObject.AddComponent<CameraRigFollow>();
             rig.target = inst.transform;
             rig.sightState = state;
+            rig.pitch = 22f;
+            rig.distance = 16f;   // closer diorama: player ~23% of frame height
             cam.fieldOfView = 26f;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 120f;
-            camNote = "rig wired (pitch 22, FOV 26, dist 25)";
+            camNote = "rig wired (pitch 22, FOV 26, dist 16)";
         }
 
         EditorSceneManager.MarkSceneDirty(scene);
