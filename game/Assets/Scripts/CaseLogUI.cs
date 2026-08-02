@@ -25,6 +25,7 @@ public class CaseLogUI : MonoBehaviour
     public Image[] sightCells;    // 10 HUD cells
     public GameObject promptRoot; // keycap chip — readable on any backdrop
     public Text promptText;
+    public GameObject toastRoot;  // top-center chip, hidden when quiet
     public Text toastText;
 
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
@@ -78,13 +79,17 @@ public class CaseLogUI : MonoBehaviour
         }
 
         if (toastText != null && Time.realtimeSinceStartup > toastUntil)
+        {
             toastText.text = "";
+            if (toastRoot != null && toastRoot.activeSelf) toastRoot.SetActive(false);
+        }
     }
 
     public void Toast(string message)
     {
         if (toastText == null) return;
         toastText.text = message;
+        if (toastRoot != null) toastRoot.SetActive(true);
         toastUntil = Time.realtimeSinceStartup + 3.5f;
     }
 

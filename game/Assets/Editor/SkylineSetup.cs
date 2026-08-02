@@ -41,9 +41,11 @@ public static class SkylineSetup
         var rows = new (float z, float height, float width, float tint, float uTiling,
                         Color morning, Color sightDark)[]
         {
-            (92f, 16f, 110f, 1f, 3f, new Color(0.56f, 0.48f, 0.53f), new Color(0.045f, 0.022f, 0.040f)),
-            (102f, 24f, 150f, 1f, 4f, new Color(0.68f, 0.60f, 0.65f), new Color(0.035f, 0.018f, 0.032f)),
-            (114f, 32f, 190f, 1f, 5f, new Color(0.79f, 0.71f, 0.75f), new Color(0.028f, 0.015f, 0.026f)),
+            // clearly darker than the sky (0.88,0.79,0.82) so the rooftop
+            // line reads; still light enough to stay "distance", not "wall"
+            (92f, 16f, 110f, 1f, 3f, new Color(0.42f, 0.35f, 0.40f), new Color(0.045f, 0.022f, 0.040f)),
+            (102f, 24f, 150f, 1f, 4f, new Color(0.54f, 0.46f, 0.51f), new Color(0.035f, 0.018f, 0.032f)),
+            (114f, 32f, 190f, 1f, 5f, new Color(0.66f, 0.57f, 0.62f), new Color(0.028f, 0.015f, 0.026f)),
         };
         int i = 0;
         foreach (var (z, height, width, tint, uTiling, morning, sightDark) in rows)

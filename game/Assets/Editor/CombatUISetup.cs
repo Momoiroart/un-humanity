@@ -21,7 +21,16 @@ public static class CombatUISetup
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Anomaly = new Color32(0xE4, 0x56, 0x8A, 0xFF);
-    static Font UiFont => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+    static Font UiFont
+    {
+        get
+        {
+            // BoldPixels (16 px native) — the pixel identity; sizes snap to
+            // multiples of 16 in Label() so glyphs stay on the pixel grid
+            var px = AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/UI/Fonts/BoldPixels.otf");
+            return px != null ? px : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        }
+    }
 
     public static string Build()
     {
@@ -36,8 +45,10 @@ public static class CombatUISetup
         canvas.worldCamera = Camera.main;
         canvas.planeDistance = 1.5f;
         var scaler = canvasGo.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
+        // pixel font law: never rescale the UI non-integer — constant pixel
+        // size + pixelPerfect keeps BoldPixels on the grid at any window size
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+        scaler.scaleFactor = 1f;
         canvasGo.AddComponent<GraphicRaycaster>();
         var ui = canvasGo.AddComponent<QueueCombatUI>();
 
@@ -189,7 +200,7 @@ public static class CombatUISetup
         var t = go.GetComponent<Text>();
         t.font = UiFont;
         t.text = text;
-        t.fontSize = size;
+        t.fontSize = size <= 23 ? 16 : (size <= 40 ? 32 : 48);  // pixel grid
         t.color = color;
         t.alignment = align;
         t.horizontalOverflow = HorizontalWrapMode.Overflow;

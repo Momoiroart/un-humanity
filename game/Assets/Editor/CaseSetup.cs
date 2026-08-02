@@ -17,12 +17,22 @@ public static class CaseSetup
     const string kScene = "Assets/Scenes/SC_02_StreetBlock.unity";
 
     static readonly Color Void_ = new Color32(0x0B, 0x0C, 0x0F, 0xF2);
+    static readonly Color VoidSolid = new Color32(0x0B, 0x0C, 0x0F, 0xFF);  // pixel HUD: fully opaque
     static readonly Color Concrete = new Color32(0x1C, 0x1F, 0x25, 0xFF);
     static readonly Color Steel = new Color32(0x3A, 0x3F, 0x48, 0xFF);
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Anomaly = new Color32(0xE4, 0x56, 0x8A, 0xFF);
-    static Font UiFont => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+    static Font UiFont
+    {
+        get
+        {
+            // BoldPixels (16 px native) — the pixel identity; sizes snap to
+            // multiples of 16 in Label() so glyphs stay on the pixel grid
+            var px = AssetDatabase.LoadAssetAtPath<Font>("Assets/Art/UI/Fonts/BoldPixels.otf");
+            return px != null ? px : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        }
+    }
 
     public static string Build()
     {
@@ -91,47 +101,55 @@ public static class CaseSetup
         canvas.worldCamera = Camera.main;
         canvas.planeDistance = 1.4f;   // in front of the combat canvas
         var scaler = canvasGo.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
+        // pixel font law: never rescale the UI non-integer — constant pixel
+        // size + pixelPerfect keeps BoldPixels on the grid at any window size
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+        scaler.scaleFactor = 1f;
         canvasGo.AddComponent<GraphicRaycaster>();
         var ui = canvasGo.AddComponent<CaseLogUI>();
 
-        // HUD: sight meter (top-left)
-        var meter = Panel(canvasGo.transform, "SightMeter", Void_);
+        // ── HUD, solid pixel style: opaque fills, chunky 3 px borders, ──
+        // ── BoldPixels type on the 16 px grid, real key sprites        ──
+
+        // sight meter (top-left)
+        var meter = PixelPanel(canvasGo.transform, "SightMeter", VoidSolid, Steel);
         Anchor(meter, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
-        meter.sizeDelta = new Vector2(268, 54);
-        meter.anchoredPosition = new Vector2(16, -56);
-        Outline(meter);
-        Label(meter, "Cap", "SIGHT", 12, Fog, TextAnchor.UpperLeft, new Vector2(10, -6), new Vector2(200, 16));
+        meter.sizeDelta = new Vector2(288, 64);
+        meter.anchoredPosition = new Vector2(16, -16);
+        Label(meter, "Cap", "SIGHT", 16, Fog, TextAnchor.UpperLeft, new Vector2(12, -7), new Vector2(200, 18));
         var cells = new List<Image>();
         for (int i = 0; i < 10; i++)
         {
             var c = Panel(meter, $"c{i}", Fog);
             Anchor(c, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f));
-            c.sizeDelta = new Vector2(20, 10);
-            c.anchoredPosition = new Vector2(12 + i * 25, 10);
+            c.sizeDelta = new Vector2(20, 12);
+            c.anchoredPosition = new Vector2(12 + i * 26, 9);
             cells.Add(c.GetComponent<Image>());
         }
         ui.sightCells = cells.ToArray();
 
-        // HUD: interact prompt — a dossier chip with a keycap, never bare text
-        var promptRoot = Panel(canvasGo.transform, "PromptChip", Void_);
+        // interact prompt — [F key sprite] + label, bottom-center
+        var promptRoot = PixelPanel(canvasGo.transform, "PromptChip", VoidSolid, Steel);
         Anchor(promptRoot, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
-        promptRoot.sizeDelta = new Vector2(520, 52);
-        promptRoot.anchoredPosition = new Vector2(0, 112);
-        Outline(promptRoot);
-        var keycap = Panel(promptRoot, "Key", Steel);   // reads as a BUTTON, not a panel
-        Anchor(keycap, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
-        keycap.sizeDelta = new Vector2(38, 38);
-        keycap.anchoredPosition = new Vector2(26, 0);
-        Outline(keycap);
-        keycap.GetComponent<Outline>().effectColor = Fog;  // bright rim on the key
-        Label(keycap, "K", "F", 20, Paper, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(36, 36));
+        promptRoot.sizeDelta = new Vector2(560, 64);
+        promptRoot.anchoredPosition = new Vector2(0, 88);
+        var keyImg = KeySprite(promptRoot, "KeyF", "key_F", 48);   // 16 px art × 3
+        keyImg.anchoredPosition = new Vector2(34, 0);
         ui.promptRoot = promptRoot.gameObject;
-        ui.promptText = Label(promptRoot, "Txt", "", 18, Paper, TextAnchor.MiddleLeft, new Vector2(56, 0), new Vector2(440, 48));
+        ui.promptText = Label(promptRoot, "Txt", "", 16, Paper, TextAnchor.MiddleLeft, new Vector2(68, 0), new Vector2(470, 56));
         promptRoot.gameObject.SetActive(false);
-        ui.toastText = Label(canvasGo.transform, "Toast", "", 17, Fog, TextAnchor.MiddleCenter, new Vector2(0, 156), new Vector2(1100, 26), anchorBottomCenter: true);
-        Label(canvasGo.transform, "Hint", "TAB — case file · E hold — Sight · F — examine", 13, Fog, TextAnchor.LowerLeft, new Vector2(16, 10), new Vector2(600, 18), anchorBottomLeft: true);
+
+        // toast (evidence logged, sight warnings) — top-center, clear of the prompt
+        var toastRoot = PixelPanel(canvasGo.transform, "ToastChip", VoidSolid, Steel);
+        Anchor(toastRoot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+        toastRoot.sizeDelta = new Vector2(640, 48);
+        toastRoot.anchoredPosition = new Vector2(0, -16);
+        ui.toastRoot = toastRoot.gameObject;
+        ui.toastText = Label(toastRoot, "Txt", "", 16, Fog, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(620, 44));
+        toastRoot.gameObject.SetActive(false);
+
+        // hint line (bottom-left)
+        Label(canvasGo.transform, "Hint", "TAB CASE FILE   E HOLD SIGHT   F EXAMINE", 16, Fog, TextAnchor.LowerLeft, new Vector2(16, 10), new Vector2(700, 20), anchorBottomLeft: true);
 
         // ── the dossier panel ──
         var panel = Panel(canvasGo.transform, "CasePanel", Void_);
@@ -280,6 +298,45 @@ public static class CaseSetup
         rt.anchorMin = min; rt.anchorMax = max; rt.pivot = pivot;
     }
 
+    /// Solid pixel chip: border-color frame, opaque fill inset 3 px.
+    /// Children added after this sit above the fill.
+    static RectTransform PixelPanel(Transform parent, string name, Color fill, Color border)
+    {
+        var frame = Panel(parent, name, border);
+        var inner = Panel(frame, "Fill", fill);
+        Anchor(inner, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f));
+        inner.offsetMin = new Vector2(3, 3);
+        inner.offsetMax = new Vector2(-3, -3);
+        return frame;
+    }
+
+    /// Key-prompt sprite (Vryell pack, 16 px art) at an integer scale.
+    static RectTransform KeySprite(Transform parent, string name, string key, int px)
+    {
+        var path = $"Assets/Art/UI/Keys/{key}.png";
+        var ti = (TextureImporter)AssetImporter.GetAtPath(path);
+        if (ti != null && (ti.textureType != TextureImporterType.Sprite || ti.filterMode != FilterMode.Point))
+        {
+            ti.textureType = TextureImporterType.Sprite;
+            ti.spriteImportMode = SpriteImportMode.Single;
+            ti.spritePixelsPerUnit = 16;
+            ti.filterMode = FilterMode.Point;
+            ti.textureCompression = TextureImporterCompression.Uncompressed;
+            ti.mipmapEnabled = false;
+            ti.alphaIsTransparency = true;
+            ti.SaveAndReimport();
+        }
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        var rt = (RectTransform)go.transform;
+        rt.SetParent(parent, false);
+        Anchor(rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0.5f, 0.5f));
+        rt.sizeDelta = new Vector2(px, px);
+        var img = go.GetComponent<Image>();
+        img.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        img.preserveAspect = true;
+        return rt;
+    }
+
     static void Outline(RectTransform rt)
     {
         var o = rt.gameObject.AddComponent<Outline>();
@@ -312,7 +369,7 @@ public static class CaseSetup
         var t = go.GetComponent<Text>();
         t.font = UiFont;
         t.text = text;
-        t.fontSize = size;
+        t.fontSize = size <= 23 ? 16 : (size <= 40 ? 32 : 48);  // pixel grid
         t.color = color;
         t.alignment = align;
         t.horizontalOverflow = HorizontalWrapMode.Overflow;
