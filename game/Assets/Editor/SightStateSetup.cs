@@ -43,7 +43,14 @@ public static class SightStateSetup
 
         var survive = new List<Light>();
         var die = new List<Light>();
-        foreach (var t in layout.GetComponentsInChildren<Transform>(true))
+        // materialize the prop roots FIRST — ChildLight destroys prior-run
+        // lamp children, which would invalidate a live child iteration
+        var propRoots = layout.GetComponentsInChildren<Transform>(true)
+            .Where(t => t != null && (t.name.StartsWith("02_StreetLight")
+                     || t.name == "11_VendingMachine"
+                     || t.name == "16_TransitArchiveKiosk"))
+            .ToList();
+        foreach (var t in propRoots)
         {
             if (t.name.StartsWith("02_StreetLight"))
             {
@@ -160,6 +167,15 @@ public static class SightStateSetup
             var chroma = Add<ChromaticAberration>();
             chroma.intensity.Override(0.35f); // the sheet's "chroma split"
         }
+
+        // Tilt-shift bokeh — the Octopath diorama's other half (Guide011:
+        // 60-90 mm, f/2.8-4, focus on the play plane). Milder in Normalcy,
+        // tighter under Sight as the framing closes in.
+        var dof = Add<DepthOfField>();
+        dof.mode.Override(DepthOfFieldMode.Bokeh);
+        dof.focusDistance.Override(sight ? 23f : 25f);
+        dof.focalLength.Override(sight ? 85f : 70f);
+        dof.aperture.Override(sight ? 2.9f : 3.4f);
 
         AssetDatabase.SaveAssets();
         return profile;
