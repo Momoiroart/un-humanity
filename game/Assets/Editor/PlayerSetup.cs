@@ -103,12 +103,12 @@ public static class PlayerSetup
             if (rig == null) rig = cam.gameObject.AddComponent<CameraRigFollow>();
             rig.target = inst.transform;
             rig.sightState = state;
-            rig.pitch = 18f;      // Octopath reference: shallow, ground-level intimacy
-            rig.distance = 13f;
+            rig.pitch = 28f;      // Octopath 2 reference: the diorama look-down
+            rig.distance = 15f;
             cam.fieldOfView = 26f;
             cam.nearClipPlane = 1f;
             cam.farClipPlane = 120f;
-            camNote = "rig wired (pitch 18, FOV 26, dist 13)";
+            camNote = "rig wired (pitch 28, FOV 26, dist 15)";
         }
 
         EditorSceneManager.MarkSceneDirty(scene);
