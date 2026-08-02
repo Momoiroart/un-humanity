@@ -43,6 +43,9 @@ public static class SightStateSetup
 
         var survive = new List<Light>();
         var die = new List<Light>();
+        var flickers = new List<LightFlicker>();
+        var warmSodium = new Color(1f, 0.80f, 0.58f);
+        var paleWine = new Color(0.60f, 0.39f, 0.47f);
         // materialize the prop roots FIRST — ChildLight destroys prior-run
         // lamp children, which would invalidate a live child iteration
         var propRoots = layout.GetComponentsInChildren<Transform>(true)
@@ -54,11 +57,26 @@ public static class SightStateSetup
         {
             if (t.name.StartsWith("02_StreetLight"))
             {
-                // lamp head: top of the pole, arm reaching over the road (+X)
-                var head = ChildLight(t, "Lamp", t.position + new Vector3(2.3f, 6.3f, 0f),
-                    new Color(1f, 0.80f, 0.58f), intensity: 3.2f, range: 14f);
-                // z8 and z40 survive into Sight; z24 dies (mid-block goes dark)
-                if (t.name.EndsWith("z24")) die.Add(head); else survive.Add(head);
+                // downward spot at the arm's end — a real sodium pool on the road
+                var head = ChildLight(t, "Lamp", t.position + new Vector3(2.2f, 6.3f, 0f),
+                    warmSodium, intensity: 60f, range: 13f);
+                head.type = LightType.Spot;
+                head.spotAngle = 52f;
+                head.innerSpotAngle = 24f;
+                head.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                // z8 and z40 survive into Sight — cold, flickering, blackout-prone;
+                // z24 dies (mid-block goes fully dark)
+                if (t.name.EndsWith("z24")) die.Add(head);
+                else
+                {
+                    survive.Add(head);
+                    var fl = head.gameObject.AddComponent<LightFlicker>();
+                    fl.target = head;
+                    fl.normalColor = warmSodium; fl.normalIntensity = 60f;
+                    fl.sightColor = paleWine; fl.sightIntensity = 46f;
+                    fl.flickerSpeed = 16f; fl.flickerDepth = 0.6f; fl.blackoutBelow = 0.12f;
+                    flickers.Add(fl);
+                }
             }
             else if (t.name == "11_VendingMachine")
                 die.Add(ChildLight(t, "Glow", t.position + new Vector3(-0.7f, 1.2f, 0f),
@@ -67,7 +85,7 @@ public static class SightStateSetup
                 die.Add(ChildLight(t, "Glow", t.position + new Vector3(0.7f, 1.6f, 0f),
                     new Color(0.98f, 0.96f, 0.96f), intensity: 1.4f, range: 5f));
         }
-        notes.Add($"lights: {survive.Count} survive, {die.Count} die under Sight");
+        notes.Add($"lights: {survive.Count} survive (flickering), {die.Count} die under Sight");
 
         // dusk sky — the procedural blue skybox breaks the evening grade
         var cam = Camera.main;
@@ -84,12 +102,40 @@ public static class SightStateSetup
             sightRoot = layout.GetComponentsInChildren<Transform>(true)
                 .FirstOrDefault(t => t.name.StartsWith("SIGHT_STATE"))?.gameObject;
 
+        // The anomaly's glow — the ONLY true-rose light in the scene, at the
+        // stop that shouldn't exist. Lives under the sight root, so in
+        // Normalcy it is absent, not hidden. Slow wrong-pulse via flicker.
+        if (sightRoot != null)
+        {
+            var oldGlow = sightRoot.transform.Find("AnomalyGlow");
+            if (oldGlow != null) Object.DestroyImmediate(oldGlow.gameObject);
+            var glowGo = new GameObject("AnomalyGlow");
+            glowGo.transform.SetParent(sightRoot.transform, false);
+            glowGo.transform.position = new Vector3(-6.2f, 1.7f, 41.5f);
+            var glow = glowGo.AddComponent<Light>();
+            glow.type = LightType.Point;
+            glow.color = new Color32(0xE4, 0x56, 0x8A, 0xFF);   // the anomaly's rose
+            glow.intensity = 3.5f;
+            glow.range = 9f;
+            glow.shadows = LightShadows.None;
+            var pulse = glowGo.AddComponent<LightFlicker>();
+            pulse.target = glow;
+            pulse.normalColor = glow.color; pulse.normalIntensity = 3.5f;
+            pulse.sightColor = glow.color; pulse.sightIntensity = 4.2f;
+            pulse.flickerSpeed = 1.6f;      // slow breathing, not electrical
+            pulse.flickerDepth = 0.35f;
+            pulse.blackoutBelow = 0f;
+            flickers.Add(pulse);
+            notes.Add("anomaly glow placed at the stop (rose, sight-only)");
+        }
+
         var ctrl = new GameObject("StateController").AddComponent<SightState>();
         ctrl.normalcyVolume = volN;
         ctrl.sightVolume = volS;
         ctrl.sightRoot = sightRoot;
         ctrl.lightsThatSurvive = survive.ToArray();
         ctrl.lightsThatDie = die.ToArray();
+        ctrl.flickers = flickers.ToArray();
         ctrl.blend = 0f;
         ctrl.Apply();
 

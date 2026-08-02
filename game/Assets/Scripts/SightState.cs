@@ -20,6 +20,7 @@ public class SightState : MonoBehaviour
     public GameObject sightRoot;
     public Light[] lightsThatSurvive;
     public Light[] lightsThatDie;
+    public LightFlicker[] flickers;
 
     [Header("Normalcy grade")]
     public Color normalcyAmbient = new Color(0.165f, 0.078f, 0.125f);
@@ -59,5 +60,8 @@ public class SightState : MonoBehaviour
         if (lightsThatSurvive != null)
             foreach (var l in lightsThatSurvive)
                 if (l != null) l.enabled = true;
+        if (flickers != null)
+            foreach (var f in flickers)
+                if (f != null) f.blend = blend;
     }
 }
