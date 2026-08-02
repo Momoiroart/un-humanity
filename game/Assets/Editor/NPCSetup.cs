@@ -77,6 +77,22 @@ public static class NPCSetup
         Billboard("SPR_WitnessA", root, new Vector3(-6.9f, 0.411f, 14.4f), "NPC_WitnessA");
         Billboard("SPR_WitnessB", root, new Vector3(6.8f, 0.411f, 24.4f), "NPC_WitnessB");
 
+        // background pedestrians on the far strip — alive by morning,
+        // gone under Sight (BackgroundWalker handles both)
+        var walkers = new (string sprite, float x, float z0, float z1, int dir, float speed)[]
+        {
+            ("SPR_WitnessA", -6.3f, 52f, 84f, 1, 1.0f),
+            ("SPR_WitnessB", 6.6f, 54f, 86f, -1, 1.3f),
+            ("SPR_Victim", -5.6f, 56f, 80f, 1, 0.8f),
+        };
+        foreach (var w in walkers)
+        {
+            var go = Billboard(w.sprite, root, new Vector3(w.x, 0.411f, (w.z0 + w.z1) * 0.5f), $"BG_Walker_{w.sprite}");
+            var bw = go.AddComponent<BackgroundWalker>();
+            bw.zMin = w.z0; bw.zMax = w.z1; bw.direction = w.dir; bw.speed = w.speed;
+            bw.spriteQuad = go.transform.GetChild(0);
+        }
+
         // the victim and the Waiter — SIGHT only, at the road-end stop
         var layout = scene.GetRootGameObjects().FirstOrDefault(g => g.name == "LAYOUT_StreetBlock");
         var sightRoot = layout != null

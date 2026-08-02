@@ -126,6 +126,8 @@ public static class PlayerSetup
         if (trig != null) trig.player = inst.transform;
         var dread = Object.FindFirstObjectByType<ProximityDread>();
         if (dread != null) dread.player = inst.transform;
+        var logUi = Object.FindFirstObjectByType<CaseLogUI>();
+        if (logUi != null) logUi.interactor = inst.GetComponent<PlayerInteractor>();
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

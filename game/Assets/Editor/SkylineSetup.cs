@@ -33,15 +33,20 @@ public static class SkylineSetup
             Object.DestroyImmediate(g);
         var root = new GameObject(kRoot).transform;
 
-        // three depths: nearer = lower + slightly lighter, farther = taller + darker
-        var rows = new (float z, float height, float width, float tint, float uTiling)[]
+        // three depths, all PAST the extended street (road + facades run to
+        // Z≈88) — a card inside the corridor reads as a wall across the road.
+        // The texture is a WHITE silhouette: SkylineStateTint owns the color
+        // (morning haze — farther = lighter — falling to near-black under
+        // Sight). `tint` here is only the material's fallback.
+        var rows = new (float z, float height, float width, float tint, float uTiling,
+                        Color morning, Color sightDark)[]
         {
-            (54f, 14f, 90f,  0.55f, 3f),
-            (66f, 20f, 120f, 0.35f, 4f),
-            (80f, 28f, 160f, 0.20f, 5f),
+            (92f, 16f, 110f, 1f, 3f, new Color(0.56f, 0.48f, 0.53f), new Color(0.045f, 0.022f, 0.040f)),
+            (102f, 24f, 150f, 1f, 4f, new Color(0.68f, 0.60f, 0.65f), new Color(0.035f, 0.018f, 0.032f)),
+            (114f, 32f, 190f, 1f, 5f, new Color(0.79f, 0.71f, 0.75f), new Color(0.028f, 0.015f, 0.026f)),
         };
         int i = 0;
-        foreach (var (z, height, width, tint, uTiling) in rows)
+        foreach (var (z, height, width, tint, uTiling, morning, sightDark) in rows)
         {
             var mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
             mat.SetTexture("_BaseMap", tex);
@@ -66,6 +71,9 @@ public static class SkylineSetup
             var mr = quad.GetComponent<MeshRenderer>();
             mr.sharedMaterial = mat;
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            var st = quad.AddComponent<SkylineStateTint>();
+            st.morning = morning;
+            st.sightDark = sightDark;
             i++;
         }
 

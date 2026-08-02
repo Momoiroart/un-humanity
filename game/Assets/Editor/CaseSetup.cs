@@ -114,8 +114,22 @@ public static class CaseSetup
         }
         ui.sightCells = cells.ToArray();
 
-        // HUD: interact prompt + toast (bottom center)
-        ui.promptText = Label(canvasGo.transform, "Prompt", "", 20, Paper, TextAnchor.MiddleCenter, new Vector2(0, 120), new Vector2(900, 30), anchorBottomCenter: true);
+        // HUD: interact prompt — a dossier chip with a keycap, never bare text
+        var promptRoot = Panel(canvasGo.transform, "PromptChip", Void_);
+        Anchor(promptRoot, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
+        promptRoot.sizeDelta = new Vector2(520, 52);
+        promptRoot.anchoredPosition = new Vector2(0, 112);
+        Outline(promptRoot);
+        var keycap = Panel(promptRoot, "Key", Steel);   // reads as a BUTTON, not a panel
+        Anchor(keycap, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
+        keycap.sizeDelta = new Vector2(38, 38);
+        keycap.anchoredPosition = new Vector2(26, 0);
+        Outline(keycap);
+        keycap.GetComponent<Outline>().effectColor = Fog;  // bright rim on the key
+        Label(keycap, "K", "F", 20, Paper, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(36, 36));
+        ui.promptRoot = promptRoot.gameObject;
+        ui.promptText = Label(promptRoot, "Txt", "", 18, Paper, TextAnchor.MiddleLeft, new Vector2(56, 0), new Vector2(440, 48));
+        promptRoot.gameObject.SetActive(false);
         ui.toastText = Label(canvasGo.transform, "Toast", "", 17, Fog, TextAnchor.MiddleCenter, new Vector2(0, 156), new Vector2(1100, 26), anchorBottomCenter: true);
         Label(canvasGo.transform, "Hint", "TAB — case file · E hold — Sight · F — examine", 13, Fog, TextAnchor.LowerLeft, new Vector2(16, 10), new Vector2(600, 18), anchorBottomLeft: true);
 

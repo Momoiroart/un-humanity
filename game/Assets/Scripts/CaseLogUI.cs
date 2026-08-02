@@ -23,6 +23,7 @@ public class CaseLogUI : MonoBehaviour
     public Text classifyNote;
     public Text verdictStamp;
     public Image[] sightCells;    // 10 HUD cells
+    public GameObject promptRoot; // keycap chip — readable on any backdrop
     public Text promptText;
     public Text toastText;
 
@@ -62,15 +63,18 @@ public class CaseLogUI : MonoBehaviour
             }
         }
 
-        // interact prompt
-        if (promptText != null)
+        // interact prompt — chip appears only when something responds
+        if (promptText != null && promptRoot != null)
         {
             var node = interactor != null ? interactor.Current : null;
-            if (node != null && controller != null
-                && controller.File.Catalog.TryGetValue(node.clueId, out var clue))
-                promptText.text = $"F — EXAMINE: {clue.Title.ToUpperInvariant()}";
-            else
-                promptText.text = "";
+            bool show = node != null && controller != null
+                && controller.File.Catalog.TryGetValue(node.clueId, out var clue);
+            if (show)
+            {
+                controller.File.Catalog.TryGetValue(node.clueId, out var c2);
+                promptText.text = $"EXAMINE: {c2.Title.ToUpperInvariant()}";
+            }
+            if (promptRoot.activeSelf != show) promptRoot.SetActive(show);
         }
 
         if (toastText != null && Time.realtimeSinceStartup > toastUntil)

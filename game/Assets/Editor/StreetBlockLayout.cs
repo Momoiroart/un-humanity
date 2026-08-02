@@ -59,8 +59,8 @@ public static class StreetBlockLayout
         // 20 · crosswalk decal set near spawn, 6 mm above the road surface
         Place(road, "SM_CrosswalkDecal_Set", new Vector3(-2.7f, 0.006f, 1f), 0, "20_CrosswalkDecals");
 
-        // ── Kerbs + gutters, both edges (incl. the runoff strip) ──
-        for (int i = -2; i < 12; i++)
+        // ── Kerbs + gutters, both edges (runoff strip + far vista) ──
+        for (int i = -2; i < 22; i++)
         {
             float z = i * 4f;
             Place(walkS, "SM_Curb_Straight_4m",  new Vector3(-4.311f, -0.212f, z), 0);
@@ -72,8 +72,9 @@ public static class StreetBlockLayout
         // ── Sidewalk slabs (tops flush with kerb at Y≈0.411) ──
         // Full 4 m width BOTH sides per the sheet; facade fronts sit on the
         // outermost slab row, so kerb → slabs → building line is continuous.
-        // Runs two extra rows into the runoff strip behind the spawn.
-        for (int i = -2; i < 12; i++)
+        // Runs two extra rows into the runoff strip behind the spawn and
+        // continues down the far vista strip (visual only past Z=48).
+        for (int i = -2; i < 22; i++)
         {
             float z = i * 4f;
             foreach (float x in new[] { -8.3f, -7.3f, -6.3f, -5.3f })
@@ -87,7 +88,7 @@ public static class StreetBlockLayout
         // Fronts aligned to the building line (A and B differ in depth, so
         // anchor the street-facing face, not the back). One extra module
         // behind the spawn frames the runoff strip.
-        for (int i = -1; i < 12; i++)
+        for (int i = -1; i < 22; i++)   // facades run the full vista
         {
             float z = i * 4f;
             string mesh = (i % 2 == 0) ? "SM_FacadeModule_A_Shop" : "SM_FacadeModule_B_Flats";
@@ -131,6 +132,16 @@ public static class StreetBlockLayout
         // 17 · trash bins ×2 (lid open)
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(-7.4f, 18f), 0.411f, 30, "17_TrashBin_South");
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(7.2f, 39f), 0.411f, -120, "17_TrashBin_North");
+
+        // ── Far-vista dressing (Z 48-88, unreachable) — the street keeps
+        //    its rhythm past the wall so morning reads as a living city ──
+        foreach (float z in new[] { 56f, 72f, 88f })
+            PlaceCenter(props, "SM_StreetLight_01", new Vector2(-4.7f, z), 0f, 90, $"V_StreetLight_z{z:0}");
+        foreach (float z in new[] { 60f, 84f })
+            PlaceCenter(props, "SM_UtilityPole_01", new Vector2(4.8f, z), 0f, -90, $"V_UtilityPole_z{z:0}");
+        Place(road, "SM_CrosswalkDecal_Set", new Vector3(-2.7f, 0.006f, 64f), 0, "V_CrosswalkDecals_Far");
+        PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(-7.3f, 62f), 0.411f, 15, "V_TrashBin_Far");
+        PlaceCenter(props, "SM_RouteSign_01", new Vector2(5.5f, 70f), 0.411f, 0, "V_RouteSign_Far");
 
         // ── Invisible boundary walls: the player cannot leave the block ──
         var bounds = Group(root, "BOUNDS (invisible)");
