@@ -27,6 +27,7 @@ public class QueueCombatUI : MonoBehaviour
     public Text[] actionCosts;
     public GameObject outcomeBanner;
     public Text outcomeText;
+    public GameObject engageHint;   // "T — engage" chip; hidden while fighting
 
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
@@ -77,6 +78,7 @@ public class QueueCombatUI : MonoBehaviour
         CombatActive = true;
         panelsRoot.SetActive(true);
         outcomeBanner.SetActive(false);
+        if (engageHint != null) engageHint.SetActive(false);
         fight.WaiterPhase();
         RefreshAll();
     }
@@ -86,6 +88,7 @@ public class QueueCombatUI : MonoBehaviour
         fight = null;
         CombatActive = false;
         if (panelsRoot != null) panelsRoot.SetActive(false);
+        if (engageHint != null) engageHint.SetActive(true);
     }
 
     /// Button hook. On a stolen turn the attempt fails inside the engine and
@@ -108,10 +111,13 @@ public class QueueCombatUI : MonoBehaviour
         roundValue.text = deleted ? "??" : s.DisplayedRound.Value.ToString("00");
         roundValue.color = deleted ? Anomaly : Paper;
 
-        // queue order — theft puts your chip behind its silhouette
+        // queue order — theft puts your chip behind its silhouette. The
+        // stolen slot reads as YOURS, TAKEN (steel) so two waiter chips
+        // never look like a binding bug; rose is reserved for ?? deletion
+        // (palette law: one accent per screen).
         queueOrder.text = s.PlayerTurnStolenThisRound
-            ? "QUEUE   <color=#E4568A>THE WAITER</color> ▸ <color=#E4568A>THE WAITER</color> ▸ <color=#979DA8>YOU</color>"
-            : "QUEUE   <color=#E4568A>THE WAITER</color> ▸ <color=#E7E9EC>YOU</color>";
+            ? "QUEUE   <color=#E7E9EC>THE WAITER</color> ▸ <color=#3A3F48>YOURS — TAKEN</color> ▸ <color=#979DA8>YOU</color>"
+            : "QUEUE   <color=#E7E9EC>THE WAITER</color> ▸ <color=#979DA8>YOU</color>";
 
         waiterStatus.text = s.ActiveIllegalMove switch
         {
@@ -122,13 +128,13 @@ public class QueueCombatUI : MonoBehaviour
         };
         var forecast = fight.ForecastNext();
         if (forecast != null)
-            waiterStatus.text += $"\n<color=#E4568A>{forecast}</color>";
+            waiterStatus.text += $"\n<color=#E7E9EC>{forecast}</color>";
 
         if (knowledgeLine != null)
         {
             knowledgeLine.text = s.Knowledge.Classified
                 ? "FILE CLASSIFIED — the wait can be made to END"
-                : "<color=#E4568A>UNCLASSIFIED — nothing you do here can resolve it</color>";
+                : "<color=#E7E9EC>UNCLASSIFIED — nothing you do here can resolve it</color>";
         }
 
         for (int i = 0; i < victimCells.Length; i++)
@@ -145,9 +151,9 @@ public class QueueCombatUI : MonoBehaviour
             {
                 var e = recent[recent.Count - n + i];
                 logLines[i].text = e.ZeroCost
-                    ? $"{e.Actor}: {e.What}  <color=#E4568A>[NO COST]</color>"
+                    ? $"{e.Actor}: {e.What}  <color=#E7E9EC>[NO COST]</color>"
                     : $"{e.Actor}: {e.What}";
-                logLines[i].color = (i == logLines.Length - 1) ? Paper : Fog;
+                logLines[i].color = (i == n - 1) ? Paper : Fog;   // newest line, not last slot
             }
             else logLines[i].text = "";
         }
@@ -167,13 +173,17 @@ public class QueueCombatUI : MonoBehaviour
         for (int i = 0; i < actionButtons.Length; i++)
         {
             actionCosts[i].text = costs[i];
-            bool usable = s.Outcome == Outcome.Ongoing
-                          && !s.PlayerTurnStolenThisRound
-                          && kit[i].CanExecute(s)
-                          && (!s.Player.HasWaitingStatus || kit[i].PiercesWaiting);
-            actionButtons[i].interactable = s.Outcome == Outcome.Ongoing;
-            actionNames[i].color = usable ? Paper : Steel;
-            actionCosts[i].color = usable ? Fog : Steel;
+            // three visually distinct tiers:
+            //   locked  — knowledge/resource gate: disabled tint + steel text
+            //   denied  — turn stolen / [WAITING]: dimmed but LIVE (clicking
+            //             passes the round — that is the design)
+            //   usable  — paper-bright
+            bool locked = !kit[i].CanExecute(s);
+            bool denied = s.PlayerTurnStolenThisRound
+                          || (s.Player.HasWaitingStatus && !kit[i].PiercesWaiting);
+            actionButtons[i].interactable = s.Outcome == Outcome.Ongoing && !locked;
+            actionNames[i].color = locked ? Steel : (denied ? Fog : Paper);
+            actionCosts[i].color = locked ? Steel : Fog;
         }
 
         if (s.Outcome != Outcome.Ongoing)

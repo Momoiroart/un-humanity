@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/FILE-UH--000-E4568A?style=for-the-badge" alt="File UH-000">
   <img src="https://img.shields.io/badge/engine-Unity-0B0C0F?style=for-the-badge&logo=unity&logoColor=white" alt="Unity">
-  <img src="https://img.shields.io/badge/status-pre--production-E4568A?style=for-the-badge" alt="Pre-production">
+  <img src="https://img.shields.io/badge/status-vertical--slice-E4568A?style=for-the-badge" alt="Vertical slice">
   <a href="https://medypn.itch.io"><img src="https://img.shields.io/badge/itch.io-medypn-FA5C5C?style=for-the-badge&logo=itchdotio&logoColor=white" alt="itch.io"></a>
 </p>
 
@@ -64,12 +64,14 @@ Development is logged in [`/devlogs`](devlogs) and mirrored to
 | 000 | [First Disclosure](devlogs/000-first-disclosure.md) |
 | 001 | [The File Has a Genre](devlogs/001-the-file-has-a-genre.md) |
 | 002 | [The Fight You Cannot Win by Damage](devlogs/002-the-fight-you-cannot-win-by-damage.md) |
+| 003 | [The Loop Closes](devlogs/003-the-loop-closes.md) |
 
 ## Status
 
-Pre-production. GDD v0.2 — genre, power system, and first case locked. First
-case on the table: **FILE UH-001, "The Bus Stop Waiter."** Current goal: the
-vertical slice — **one location, one anomaly, one full loop.**
+In production — the vertical slice. **FILE UH-001, "The Bus Stop Waiter"**
+is playable end to end in gray-box: the full loop — investigate, classify,
+engage, resolve — runs from the dispatch text to the ride home. Next: the
+art pass, witness dialogue, audio, and the first cold playtest.
 
 ---
 

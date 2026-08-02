@@ -46,10 +46,14 @@ public class CaseController : MonoBehaviour
         }
 
         // A successful collect — or a re-read of evidence already in the
-        // file — opens the record itself. Refusals only toast.
+        // file — opens the record itself. Refusals only toast. The dossier
+        // panel closes first: record and dossier are fixed-width chips that
+        // collide below ~1580 px windows.
         var got = File.Get(node.clueId);
-        if (got != null && reading != null && (changed || got != null))
+        if (got != null && reading != null)
         {
+            if (ui != null && ui.panelRoot != null && ui.panelRoot.activeSelf)
+                ui.panelRoot.SetActive(false);
             Texture2D img = null;
             int idx = (int)node.clueId;
             if (evidenceImages != null && idx >= 0 && idx < evidenceImages.Length)

@@ -89,11 +89,11 @@ public class StoryUI : MonoBehaviour
         bool remnant = verdict == Verdict.Remnant;
         choiceButtons[0].interactable = remnant;
         choiceLabels[0].text = remnant
-            ? "RUN THE 1974 BUS\n<size=13>end the wait</size>"
-            : "RUN THE 1974 BUS\n<size=13>LOCKED — you never understood it</size>";
+            ? "RUN THE 1974 BUS\n<size=16>end the wait</size>"
+            : "RUN THE 1974 BUS\n<size=16>LOCKED — you never understood it</size>";
         choiceLabels[0].color = remnant ? Paper : Steel;
-        choiceLabels[1].text = "DESTROY IT\n<size=13>the wait disperses</size>";
-        choiceLabels[2].text = "LET IT WAIT\n<size=13>contain and walk away</size>";
+        choiceLabels[1].text = "DESTROY IT\n<size=16>the wait disperses</size>";
+        choiceLabels[2].text = "LET IT WAIT\n<size=16>contain and walk away</size>";
     }
 
     void BeginFailure()

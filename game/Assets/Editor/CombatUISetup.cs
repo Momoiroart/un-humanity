@@ -1,6 +1,6 @@
 // UN-HUMANITY — builds THE QUEUE's combat UI canvas in the dossier
 // identity (void/concrete/steel panels, fog/paper text, anomaly reserved
-// for the violations). Screen-space CAMERA so captures see it. Re-runnable.
+// for the violations). Screen-space OVERLAY + pixelPerfect (pixel law). Re-runnable.
 //   unity command eval "return CombatUISetup.Build();"
 
 using System.Collections.Generic;
@@ -41,9 +41,7 @@ public static class CombatUISetup
         var canvasGo = new GameObject("UI_Combat");
         var canvas = canvasGo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.pixelPerfect = true;  // native res - text stays crisp   // camera-space: captures include it
-        canvas.worldCamera = Camera.main;
-        canvas.planeDistance = 1.5f;
+        canvas.pixelPerfect = true;  // native res - text stays crisp
         var scaler = canvasGo.AddComponent<CanvasScaler>();
         // pixel font law: never rescale the UI non-integer — constant pixel
         // size + pixelPerfect keeps BoldPixels on the grid at any window size
@@ -60,7 +58,8 @@ public static class CombatUISetup
         bar.sizeDelta = new Vector2(0, 40); bar.anchoredPosition = new Vector2(0, -20);
         Strip(bar, "AccentTop", 2, 20, Anomaly);
         Label(bar, "L", "■ CLASSIFIED // THE QUEUE — FILE UH-001", 18, Fog, TextAnchor.MiddleLeft, new Vector2(16, 0), new Vector2(900, 40));
-        Label(bar, "R", "LEVEL-4 CLEARANCE", 18, Anomaly, TextAnchor.MiddleRight, new Vector2(-16, 0), new Vector2(400, 40), pivotRight: true);
+        // Fog, not rose — pure chrome must not spend the screen's one accent
+        Label(bar, "R", "LEVEL-4 CLEARANCE", 18, Fog, TextAnchor.MiddleRight, new Vector2(-16, 0), new Vector2(400, 40), pivotRight: true);
 
         // ── round counter ──
         var round = Panel(root, "RoundBox", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Concrete);
@@ -69,12 +68,12 @@ public static class CombatUISetup
         Label(round, "Cap", "ROUND", 13, Fog, TextAnchor.UpperCenter, new Vector2(0, -7), new Vector2(160, 18));
         ui.roundValue = Label(round, "Val", "01", 40, Paper, TextAnchor.LowerCenter, new Vector2(0, 8), new Vector2(160, 48));
 
-        // queue order line under the round box
-        ui.queueOrder = Label(root, "QueueOrder", "QUEUE", 18, Fog, TextAnchor.MiddleCenter, new Vector2(0, -172), new Vector2(900, 28), anchorTop: true);
+        // queue order line under the round box (clear of the box's -162 edge)
+        ui.queueOrder = Label(root, "QueueOrder", "QUEUE", 18, Fog, TextAnchor.MiddleCenter, new Vector2(0, -180), new Vector2(900, 28), anchorTop: true);
         ui.queueOrder.supportRichText = true;
 
         // knowledge line — what the file lets this fight BE
-        ui.knowledgeLine = Label(root, "Knowledge", "", 15, Fog, TextAnchor.MiddleCenter, new Vector2(0, -202), new Vector2(1100, 24), anchorTop: true);
+        ui.knowledgeLine = Label(root, "Knowledge", "", 15, Fog, TextAnchor.MiddleCenter, new Vector2(0, -210), new Vector2(1100, 24), anchorTop: true);
         ui.knowledgeLine.supportRichText = true;
 
         // ── the Waiter panel + its EMPTY cost frame ──
@@ -86,7 +85,9 @@ public static class CombatUISetup
         Label(wp, "CostCap", "COST", 13, Fog, TextAnchor.UpperLeft, new Vector2(14, -94), new Vector2(100, 18));
         var costFrame = Panel(wp, "CostFrame", new Vector2(0f, 0f), new Vector2(0f, 0f), new Color32(0x0B, 0x0C, 0x0F, 0xFF));
         costFrame.sizeDelta = new Vector2(330, 40); costFrame.anchoredPosition = new Vector2(179, 32);
-        Border(costFrame);   // deliberately EMPTY inside — the design is the statement
+        Border(costFrame);   // deliberately EMPTY of a price — the design is the statement
+        // a steel redaction dash so the emptiness reads authored, not broken
+        Label(costFrame, "Dash", "———", 16, Steel, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(120, 24));
 
         // ── victim clock ──
         var vc = Panel(root, "VictimClock", new Vector2(1f, 1f), new Vector2(1f, 1f), Void_);
@@ -110,7 +111,7 @@ public static class CombatUISetup
         var lines = new List<Text>();
         for (int i = 0; i < 5; i++)
         {
-            var t = Label(log, $"Line{i}", "", 15, Fog, TextAnchor.MiddleLeft, new Vector2(12, -8 - i * 27), new Vector2(736, 26));
+            var t = Label(log, $"Line{i}", "", 15, Fog, TextAnchor.UpperLeft, new Vector2(12, -8 - i * 27), new Vector2(736, 26));
             t.supportRichText = true;
             lines.Add(t);
         }
@@ -121,16 +122,18 @@ public static class CombatUISetup
         var btns = new List<Button>(); var bNames = new List<Text>(); var bCosts = new List<Text>();
         for (int i = 0; i < names.Length; i++)
         {
+            // 230 px at 240 pitch = 1430 total — fits any window >= 1440 wide
+            // (the old 1550 clipped even the ultrawide dev window)
             var b = Panel(root, $"Action_{names[i]}", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Concrete);
-            b.sizeDelta = new Vector2(250, 86);
-            b.anchoredPosition = new Vector2(-650 + i * 260, 66);
+            b.sizeDelta = new Vector2(230, 88);
+            b.anchoredPosition = new Vector2(-600 + i * 240, 66);
             Border(b);
             var btn = b.gameObject.AddComponent<Button>();
             btn.targetGraphic = b.GetComponent<Image>();
             int idx = i;
             UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnAction, idx);
-            bNames.Add(Label(b, "N", names[i], 20, Paper, TextAnchor.UpperCenter, new Vector2(0, -12), new Vector2(240, 26)));
-            bCosts.Add(Label(b, "C", "", 14, Fog, TextAnchor.LowerCenter, new Vector2(0, 10), new Vector2(240, 22)));
+            bNames.Add(Label(b, "N", names[i], 20, Paper, TextAnchor.UpperCenter, new Vector2(0, -12), new Vector2(220, 26)));
+            bCosts.Add(Label(b, "C", "", 14, Fog, TextAnchor.LowerCenter, new Vector2(0, 10), new Vector2(220, 22)));
             btns.Add(btn);
         }
         ui.actionButtons = btns.ToArray();
@@ -145,9 +148,10 @@ public static class CombatUISetup
         ui.outcomeText = Label(banner, "Txt", "", 34, Paper, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(1260, 60));
         ui.outcomeBanner = banner.gameObject;
 
-        // hint chip (always visible, outside panelsRoot)
-        Label(canvasGo.transform, "Hint", "T — engage / disengage THE QUEUE (gray-box)", 14, Fog,
-              TextAnchor.LowerRight, new Vector2(-14, 10), new Vector2(600, 20), pivotRight: true, anchorBottomRight: true);
+        // hint chip — outside panelsRoot, but QueueCombatUI hides it while a
+        // fight runs so it never overlaps the action bar
+        ui.engageHint = Label(canvasGo.transform, "Hint", "T — engage / disengage THE QUEUE (gray-box)", 14, Fog,
+              TextAnchor.LowerRight, new Vector2(-14, 10), new Vector2(600, 20), pivotRight: true, anchorBottomRight: true).gameObject;
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -193,6 +197,10 @@ public static class CombatUISetup
         if (anchorTop) { rt.anchorMin = new Vector2(0.5f, 1f); rt.anchorMax = new Vector2(0.5f, 1f); }
         else if (anchorBottomRight) { rt.anchorMin = new Vector2(1f, 0f); rt.anchorMax = new Vector2(1f, 0f); rt.pivot = new Vector2(1f, 0f); }
         else if (pivotRight) { rt.anchorMin = new Vector2(1f, 0.5f); rt.anchorMax = new Vector2(1f, 0.5f); rt.pivot = new Vector2(1f, 0.5f); }
+        else if (align == TextAnchor.UpperCenter)
+        { rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f); rt.pivot = new Vector2(0.5f, 1f); }
+        else if (align == TextAnchor.LowerCenter)
+        { rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f); rt.pivot = new Vector2(0.5f, 0f); }
         else if (align == TextAnchor.MiddleLeft || align == TextAnchor.UpperLeft || align == TextAnchor.LowerLeft)
         { rt.anchorMin = new Vector2(0f, align == TextAnchor.MiddleLeft ? 0.5f : 1f); rt.anchorMax = rt.anchorMin; rt.pivot = new Vector2(0f, align == TextAnchor.UpperLeft ? 1f : 0.5f); }
         rt.anchoredPosition = pos;

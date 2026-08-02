@@ -13,6 +13,7 @@ public class PlayerInteractor : MonoBehaviour
     void Update()
     {
         Current = null;
+        if (QueueCombatUI.CombatActive) return;   // no examining mid-QUEUE
         if (caseController == null) return;
 
         // an open record captures F: close it, don't re-collect

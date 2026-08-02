@@ -27,6 +27,8 @@ public class CaseLogUI : MonoBehaviour
     public Text promptText;
     public GameObject toastRoot;  // top-center chip, hidden when quiet
     public Text toastText;
+    public GameObject sightMeterRoot; // case chrome — hidden while THE QUEUE runs
+    public GameObject hintRoot;
 
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
@@ -44,15 +46,22 @@ public class CaseLogUI : MonoBehaviour
 
     void Update()
     {
+        // combat owns the stage: case chrome yields to THE QUEUE
+        bool combat = QueueCombatUI.CombatActive;
+        if (sightMeterRoot != null && sightMeterRoot.activeSelf == combat) sightMeterRoot.SetActive(!combat);
+        if (hintRoot != null && hintRoot.activeSelf == combat) hintRoot.SetActive(!combat);
+        if (combat && panelRoot != null && panelRoot.activeSelf) panelRoot.SetActive(false);
+
         var kb = Keyboard.current;
-        if (kb != null && kb.tabKey.wasPressedThisFrame && panelRoot != null)
+        bool readingOpen = controller != null && controller.reading != null && controller.reading.IsOpen;
+        if (kb != null && kb.tabKey.wasPressedThisFrame && panelRoot != null && !combat && !readingOpen)
         {
             panelRoot.SetActive(!panelRoot.activeSelf);
             if (panelRoot.activeSelf) Refresh();
         }
 
         // sight meter
-        if (sightState != null && sightCells != null)
+        if (!combat && sightState != null && sightCells != null)
         {
             float frac = sightState.Meter / Mathf.Max(1f, sightState.meterMax);
             int lit = Mathf.RoundToInt(frac * sightCells.Length);
@@ -87,7 +96,7 @@ public class CaseLogUI : MonoBehaviour
 
     public void Toast(string message)
     {
-        if (toastText == null) return;
+        if (toastText == null || QueueCombatUI.CombatActive) return;
         toastText.text = message;
         if (toastRoot != null) toastRoot.SetActive(true);
         toastUntil = Time.realtimeSinceStartup + 3.5f;

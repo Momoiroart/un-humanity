@@ -26,8 +26,9 @@ public class ClueMarker : MonoBehaviour
         bool sight = controller.SightActive;
         bool collected = controller.File != null && controller.File.Has(node.clueId);
         // markers exist only while Sight is held — the street never
-        // advertises its evidence to plain eyes
-        bool visible = !collected && sight;
+        // advertises its evidence to plain eyes. Combat also holds Sight,
+        // but THE QUEUE's stage belongs to the fight, not the markers.
+        bool visible = !collected && sight && !QueueCombatUI.CombatActive;
 
         if (quad.enabled != visible) quad.enabled = visible;
         if (!visible) return;

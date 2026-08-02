@@ -127,6 +127,7 @@ public static class CaseSetup
             cells.Add(c.GetComponent<Image>());
         }
         ui.sightCells = cells.ToArray();
+        ui.sightMeterRoot = meter.gameObject;   // hidden while THE QUEUE runs
 
         // interact prompt — [F key sprite] + label, bottom-center
         var promptRoot = PixelPanel(canvasGo.transform, "PromptChip", VoidSolid, Steel);
@@ -148,16 +149,17 @@ public static class CaseSetup
         ui.toastText = Label(toastRoot, "Txt", "", 16, Fog, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(620, 44));
         toastRoot.gameObject.SetActive(false);
 
-        // hint line (bottom-left)
-        Label(canvasGo.transform, "Hint", "TAB CASE FILE   E HOLD SIGHT   F EXAMINE", 16, Fog, TextAnchor.LowerLeft, new Vector2(16, 10), new Vector2(700, 20), anchorBottomLeft: true);
+        // hint line (bottom-left) — case chrome, hidden while THE QUEUE runs
+        ui.hintRoot = Label(canvasGo.transform, "Hint", "TAB CASE FILE   E HOLD SIGHT   F EXAMINE", 16, Fog, TextAnchor.LowerLeft, new Vector2(16, 10), new Vector2(700, 20), anchorBottomLeft: true).gameObject;
 
         // ── the dossier panel ──
+        // 688 tall — must fit a 720 window under ConstantPixelSize
         var panel = Panel(canvasGo.transform, "CasePanel", Void_);
         Anchor(panel, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
-        panel.sizeDelta = new Vector2(540, 760);
+        panel.sizeDelta = new Vector2(540, 688);
         panel.anchoredPosition = new Vector2(-30, 0);
         Outline(panel);
-        Strip(panel, "Accent", 2, 378, Anomaly);
+        Strip(panel, "Accent", 2, 342, Anomaly);
         Label(panel, "Head", "CASE FILE UH-001", 26, Paper, TextAnchor.UpperLeft, new Vector2(24, -22), new Vector2(480, 32));
         Label(panel, "Sub", "ROUTE 9 NORTHBOUND · THE BUS STOP WAITER", 13, Fog, TextAnchor.UpperLeft, new Vector2(24, -58), new Vector2(480, 18));
         ui.counter = Label(panel, "Count", "EVIDENCE 0/6", 16, Anomaly, TextAnchor.UpperLeft, new Vector2(24, -86), new Vector2(480, 22));
@@ -166,14 +168,14 @@ public static class CaseSetup
         var tags = new List<Text>();
         for (int i = 0; i < 6; i++)
         {
-            float y = -130 - i * 64;
+            float y = -116 - i * 56;   // compressed pitch so the 688 panel holds all six
             var row = Panel(panel, $"Row{i}", Concrete);
             Anchor(row, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            row.sizeDelta = new Vector2(492, 54);
+            row.sizeDelta = new Vector2(492, 48);
             row.anchoredPosition = new Vector2(0, y);
             Outline(row);
-            titles.Add(Label(row, "T", "· · · · · ·", 18, Steel, TextAnchor.MiddleLeft, new Vector2(14, 0), new Vector2(360, 50)));
-            tags.Add(Label(row, "Tag", "", 12, Fog, TextAnchor.MiddleRight, new Vector2(-12, 0), new Vector2(90, 50), pivotRight: true));
+            titles.Add(Label(row, "T", "· · · · · ·", 18, Steel, TextAnchor.MiddleLeft, new Vector2(14, 0), new Vector2(360, 44)));
+            tags.Add(Label(row, "Tag", "", 12, Fog, TextAnchor.MiddleRight, new Vector2(-12, 0), new Vector2(90, 44), pivotRight: true));
         }
         ui.rowTitles = titles.ToArray();
         ui.rowTags = tags.ToArray();
@@ -181,13 +183,13 @@ public static class CaseSetup
         // classification
         var cls = Panel(panel, "Classify", new Color(0, 0, 0, 0));
         Anchor(cls, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
-        cls.sizeDelta = new Vector2(492, 190);
-        cls.anchoredPosition = new Vector2(0, 108);
+        cls.sizeDelta = new Vector2(492, 180);
+        cls.anchoredPosition = new Vector2(0, 88);
         Label(cls, "Cap", "CLASSIFICATION", 14, Fog, TextAnchor.UpperLeft, new Vector2(0, -2), new Vector2(300, 18));
         ui.classifyNote = Label(cls, "Note", "", 14, Fog, TextAnchor.UpperLeft, new Vector2(0, -26), new Vector2(480, 40));
         var btnRow = new GameObject("Buttons", typeof(RectTransform)).GetComponent<RectTransform>();
         btnRow.SetParent(cls, false);
-        btnRow.anchoredPosition = new Vector2(0, -40);
+        btnRow.anchoredPosition = new Vector2(0, -56);   // buttons clear of the note text
         void ClsButton(string txt, float x, bool unhumanity)
         {
             var b = Panel(btnRow, "Btn_" + txt, Concrete);
@@ -224,14 +226,24 @@ public static class CaseSetup
         photoRt.sizeDelta = new Vector2(656, 330);
         photoRt.anchoredPosition = new Vector2(0, -20);
         reading.photo = photoGo.GetComponent<RawImage>();
-        reading.title = Label(rp, "Title", "", 24, Paper, TextAnchor.UpperLeft, new Vector2(32, -366), new Vector2(500, 30));
+        reading.title = Label(rp, "Title", "", 24, Paper, TextAnchor.UpperLeft, new Vector2(32, -366), new Vector2(500, 36));
+        reading.title.verticalOverflow = VerticalWrapMode.Overflow;   // 32 px BoldPixels must never truncate to blank
         reading.stateTag = Label(rp, "Tag", "", 13, Fog, TextAnchor.UpperLeft, new Vector2(32, -398), new Vector2(400, 18));
         reading.body = Label(rp, "Body", "", 18, Fog, TextAnchor.UpperLeft, new Vector2(32, -426), new Vector2(656, 150));
         reading.body.horizontalOverflow = HorizontalWrapMode.Wrap;
         reading.body.color = Paper;
-        Label(rp, "CloseHint", "F — CLOSE RECORD", 13, Fog, TextAnchor.LowerRight, new Vector2(-24, 14), new Vector2(300, 18), pivotRight: true);
+        var closeHint = Label(rp, "CloseHint", "F — CLOSE RECORD", 13, Fog, TextAnchor.LowerRight, new Vector2(-24, 14), new Vector2(300, 18), pivotRight: true);
+        // pivotRight anchors middle-right; this hint belongs bottom-right,
+        // clear of the photograph
+        var chRt = (RectTransform)closeHint.transform;
+        chRt.anchorMin = chRt.anchorMax = new Vector2(1f, 0f);
+        chRt.pivot = new Vector2(1f, 0f);
+        chRt.anchoredPosition = new Vector2(-24, 14);
         reading.panelRoot = rp.gameObject;
         rp.gameObject.SetActive(false);
+        // transient chrome always wins the sibling war: the toast must draw
+        // over the dossier and record panels, never under them
+        toastRoot.SetAsLastSibling();
 
         // evidence textures, catalog order (TheStop, Witnesses, Bench, Sediment, Archive, Victim)
         var evidence = new[]
