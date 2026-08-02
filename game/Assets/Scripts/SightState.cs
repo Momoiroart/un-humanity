@@ -22,15 +22,25 @@ public class SightState : MonoBehaviour
     public Light[] lightsThatDie;
     public LightFlicker[] flickers;
 
-    [Header("Normalcy grade")]
-    public Color normalcyAmbient = new Color(0.165f, 0.078f, 0.125f);
-    public Color normalcyFog = new Color(0.090f, 0.051f, 0.078f);
-    public float normalcyFogDensity = 0.012f;
+    [Header("Normalcy grade — a bright, ordinary morning")]
+    public Color normalcyAmbient = new Color(0.60f, 0.53f, 0.57f);
+    public Color normalcyFog = new Color(0.80f, 0.71f, 0.75f);
+    public float normalcyFogDensity = 0.0035f;   // see far down the road
 
-    [Header("Sight grade — two hues survive: ink and rose")]
-    public Color sightAmbient = new Color(0.110f, 0.031f, 0.071f);
-    public Color sightFog = new Color(0.071f, 0.020f, 0.047f);
-    public float sightFogDensity = 0.022f;
+    [Header("Sight grade — the morning is a lie; it is always the wait")]
+    public Color sightAmbient = new Color(0.055f, 0.016f, 0.035f);
+    public Color sightFog = new Color(0.045f, 0.012f, 0.030f);
+    public float sightFogDensity = 0.030f;
+
+    [Header("Key light + sky (wired by SightStateSetup)")]
+    public Light keyLight;
+    public Camera worldCamera;
+    public Color normalcyKeyColor = new Color(1f, 0.93f, 0.82f);
+    public float normalcyKeyIntensity = 1.7f;
+    public Color sightKeyColor = new Color(0.42f, 0.26f, 0.34f);
+    public float sightKeyIntensity = 0.10f;      // the sun goes out
+    public Color normalcySky = new Color(0.88f, 0.79f, 0.82f);   // pale morning, in-palette
+    public Color sightSky = new Color(0.055f, 0.025f, 0.045f);
 
     [Range(0f, 1f)] public float blend;
 
@@ -82,6 +92,13 @@ public class SightState : MonoBehaviour
         RenderSettings.ambientLight = Color.Lerp(normalcyAmbient, sightAmbient, blend);
         RenderSettings.fogColor = Color.Lerp(normalcyFog, sightFog, blend);
         RenderSettings.fogDensity = Mathf.Lerp(normalcyFogDensity, sightFogDensity, blend);
+        if (keyLight != null)
+        {
+            keyLight.intensity = Mathf.Lerp(normalcyKeyIntensity, sightKeyIntensity, blend);
+            keyLight.color = Color.Lerp(normalcyKeyColor, sightKeyColor, blend);
+        }
+        if (worldCamera != null)
+            worldCamera.backgroundColor = Color.Lerp(normalcySky, sightSky, blend);
 
         bool sight = blend > 0.5f;
         if (sightRoot != null && sightRoot.activeSelf != sight) sightRoot.SetActive(sight);

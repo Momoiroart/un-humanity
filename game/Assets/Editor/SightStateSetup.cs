@@ -66,24 +66,24 @@ public static class SightStateSetup
                 head.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
                 // z8 and z40 survive into Sight — cold, flickering, blackout-prone;
                 // z24 dies (mid-block goes fully dark)
-                if (t.name.EndsWith("z24")) die.Add(head);
+                if (t.name.EndsWith("z24")) { head.enabled = false; die.Add(head); }
                 else
                 {
                     survive.Add(head);
                     var fl = head.gameObject.AddComponent<LightFlicker>();
                     fl.target = head;
-                    fl.normalColor = warmSodium; fl.normalIntensity = 60f;
+                    fl.normalColor = warmSodium; fl.normalIntensity = 0f;   // morning: lamps are off
                     fl.sightColor = paleWine; fl.sightIntensity = 46f;
                     fl.flickerSpeed = 16f; fl.flickerDepth = 0.6f; fl.blackoutBelow = 0.12f;
                     flickers.Add(fl);
                 }
             }
             else if (t.name == "11_VendingMachine")
-                die.Add(ChildLight(t, "Glow", t.position + new Vector3(-0.7f, 1.2f, 0f),
-                    new Color(0.93f, 0.55f, 0.51f), intensity: 1.6f, range: 4f));
+                ChildLight(t, "Glow", t.position + new Vector3(-0.7f, 1.2f, 0f),
+                    new Color(0.93f, 0.55f, 0.51f), intensity: 1.6f, range: 4f);
             else if (t.name == "16_TransitArchiveKiosk")
-                die.Add(ChildLight(t, "Glow", t.position + new Vector3(0.7f, 1.6f, 0f),
-                    new Color(0.98f, 0.96f, 0.96f), intensity: 1.4f, range: 5f));
+                ChildLight(t, "Glow", t.position + new Vector3(0.7f, 1.6f, 0f),
+                    new Color(0.98f, 0.96f, 0.96f), intensity: 1.4f, range: 5f);
         }
         notes.Add($"lights: {survive.Count} survive (flickering), {die.Count} die under Sight");
 
@@ -129,7 +129,18 @@ public static class SightStateSetup
             notes.Add("anomaly glow placed at the stop (rose, sight-only)");
         }
 
+        var keyGo = GameObject.Find("Directional Key");
+        if (keyGo != null)
+        {
+            var kl = keyGo.GetComponent<Light>();
+            kl.intensity = 1.7f;
+            kl.color = new Color(1f, 0.93f, 0.82f);
+            keyGo.transform.rotation = Quaternion.Euler(48f, -35f, 0f);   // morning sun, higher
+        }
+
         var ctrl = new GameObject("StateController").AddComponent<SightState>();
+        ctrl.keyLight = keyGo != null ? keyGo.GetComponent<Light>() : null;
+        ctrl.worldCamera = cam;
         ctrl.normalcyVolume = volN;
         ctrl.sightVolume = volS;
         ctrl.sightRoot = sightRoot;
@@ -203,9 +214,9 @@ public static class SightStateSetup
         }
         else
         {
-            ca.postExposure.Override(0.2f);
-            ca.saturation.Override(-10f);
-            ca.contrast.Override(10f);
+            ca.postExposure.Override(0.4f);
+            ca.saturation.Override(-4f);
+            ca.contrast.Override(8f);
         }
 
         if (sight)

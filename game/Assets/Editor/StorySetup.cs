@@ -31,7 +31,8 @@ public static class StorySetup
 
         var canvasGo = new GameObject("UI_Story");
         var canvas = canvasGo.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;  // native res - text stays crisp
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.pixelPerfect = true;  // native res - text stays crisp
         canvas.worldCamera = Camera.main;
         canvas.planeDistance = 1.2f;    // front of everything
         var scaler = canvasGo.AddComponent<CanvasScaler>();

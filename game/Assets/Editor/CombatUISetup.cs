@@ -31,7 +31,8 @@ public static class CombatUISetup
 
         var canvasGo = new GameObject("UI_Combat");
         var canvas = canvasGo.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;  // native res - text stays crisp   // camera-space: captures include it
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.pixelPerfect = true;  // native res - text stays crisp   // camera-space: captures include it
         canvas.worldCamera = Camera.main;
         canvas.planeDistance = 1.5f;
         var scaler = canvasGo.AddComponent<CanvasScaler>();

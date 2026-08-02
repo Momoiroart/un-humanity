@@ -14,7 +14,7 @@ public class ProximityDread : MonoBehaviour
     public Volume sightVolume;
     public Transform player;
     public Vector3 anchor = new Vector3(0f, 0.4f, 46.4f);
-    public float dreadOuter = 18f;   // ramp starts
+    public float dreadOuter = 24f;   // ramp starts
     public float dreadInner = 3f;    // full horror at the field's edge
 
     ChromaticAberration chroma;

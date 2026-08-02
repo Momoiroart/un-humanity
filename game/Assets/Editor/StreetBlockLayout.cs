@@ -50,7 +50,10 @@ public static class StreetBlockLayout
         // ── Roadway: 6 × RoadModule_8x8 down the corridor, plus one runoff
         //    module behind the spawn (Z -8..0) so the camera never sees the
         //    world end when the player walks back toward the block edge ──
-        for (int i = -1; i < 6; i++)
+        // playable modules 0..5; the far strip (6..10) is visual only —
+        // in Normalcy you can SEE far down the road, the wall at Z=48 makes
+        // sure you can never go there
+        for (int i = -1; i < 11; i++)
             Place(road, "SM_RoadModule_8x8", new Vector3(-4f, -0.212f, i * 8f), 0);
 
         // 20 · crosswalk decal set near spawn, 6 mm above the road surface

@@ -86,7 +86,8 @@ public static class CaseSetup
         // ── UI canvas ──
         var canvasGo = new GameObject("UI_Case");
         var canvas = canvasGo.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;  // native res - text stays crisp
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.pixelPerfect = true;  // native res - text stays crisp
         canvas.worldCamera = Camera.main;
         canvas.planeDistance = 1.4f;   // in front of the combat canvas
         var scaler = canvasGo.AddComponent<CanvasScaler>();
