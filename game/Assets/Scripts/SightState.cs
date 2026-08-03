@@ -77,9 +77,18 @@ public class SightState : MonoBehaviour
         if (!Mathf.Approximately(b, blend)) SetSight(b);
     }
 
+    float prevBlend;
+
     public void SetSight(float t)
     {
         blend = Mathf.Clamp01(t);
+        // the moment Sight takes hold, the sound of the morning dies too
+        if (Application.isPlaying)
+        {
+            if (prevBlend <= 0.5f && blend > 0.5f) SfxBoss.Play("sight_enter");
+            SfxBoss.SetSightBlend(blend);
+        }
+        prevBlend = blend;
         Apply();
     }
 

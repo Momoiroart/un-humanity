@@ -28,6 +28,7 @@ public class QueueCombatUI : MonoBehaviour
     public GameObject outcomeBanner;
     public Text outcomeText;
     public GameObject engageHint;   // "T — engage" chip; hidden while fighting
+    public Text kitStrip;           // occupation-power flavor above the action bar
 
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
@@ -79,8 +80,12 @@ public class QueueCombatUI : MonoBehaviour
         panelsRoot.SetActive(true);
         outcomeBanner.SetActive(false);
         if (engageHint != null) engageHint.SetActive(false);
+        if (kitStrip != null)
+            kitStrip.text = "your kit pays real costs — film, flares, time. That is the difference between you and it.";
+        SfxBoss.Play("combat_start");
         fight.WaiterPhase();
         RefreshAll();
+        PlayWaiterCue();
     }
 
     public void StopEncounter()
@@ -93,13 +98,36 @@ public class QueueCombatUI : MonoBehaviour
 
     /// Button hook. On a stolen turn the attempt fails inside the engine and
     /// the round passes anyway — that is the design, not a bug.
+    static readonly string[] kActionCues = { "flare", "radio", "photograph", "escort", "hold", "withdraw" };
+    public string[] actionFlavor;   // serialized; wired by CombatUISetup (occupation-power voice)
+
     public void OnAction(int index)
     {
         if (fight == null || fight.State.Outcome != Outcome.Ongoing) return;
+        SfxBoss.Play(kActionCues[index]);
+        if (kitStrip != null && actionFlavor != null && index < actionFlavor.Length)
+            kitStrip.text = actionFlavor[index];
         fight.PlayerPhase(kit[index]);
         fight.EndRound();
         if (fight.State.Outcome == Outcome.Ongoing) fight.WaiterPhase();
         RefreshAll();
+        PlayWaiterCue();
+    }
+
+    /// The cheat is HEARD, not just printed — one cue per illegal move.
+    void PlayWaiterCue()
+    {
+        if (fight == null) return;
+        var s = fight.State;
+        if (s.Outcome == Outcome.VictimEscorted || s.Outcome == Outcome.OrderReimposed) { SfxBoss.Play("win"); return; }
+        if (s.Outcome == Outcome.VictimLost) { SfxBoss.Play("lose"); return; }
+        if (s.Outcome != Outcome.Ongoing) return;
+        switch (s.ActiveIllegalMove)
+        {
+            case IllegalMove.TurnTheft: SfxBoss.Play("turn_theft"); break;
+            case IllegalMove.CounterDeletion: SfxBoss.Play("counter_delete"); break;
+            case IllegalMove.Waiting: SfxBoss.Play("waiting_lock"); break;
+        }
     }
 
     public void RefreshAll()
@@ -132,9 +160,10 @@ public class QueueCombatUI : MonoBehaviour
 
         if (knowledgeLine != null)
         {
+            // the weakpoint, in words: what it IS, how it cheats, what ends it
             knowledgeLine.text = s.Knowledge.Classified
-                ? "FILE CLASSIFIED — the wait can be made to END"
-                : "<color=#E7E9EC>UNCLASSIFIED — nothing you do here can resolve it</color>";
+                ? "TEMPORAL RESIDUAL. Cheat: a wait that pays no time. Weakpoint: sustained order — hold it, and the wait ends."
+                : "<color=#E7E9EC>UNCLASSIFIED. You don't know what this is. Nothing here can end. Withdrawing is not losing. Finish the file.</color>";
         }
 
         for (int i = 0; i < victimCells.Length; i++)

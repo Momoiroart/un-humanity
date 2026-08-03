@@ -140,17 +140,32 @@ public static class CaseSetup
         ui.promptText = Label(promptRoot, "Txt", "", 16, Paper, TextAnchor.MiddleLeft, new Vector2(68, 0), new Vector2(470, 56));
         promptRoot.gameObject.SetActive(false);
 
-        // toast (evidence logged, sight warnings) — top-center, clear of the prompt
+        // toast (evidence logged + what it UNLOCKS) — top-center, wide
         var toastRoot = PixelPanel(canvasGo.transform, "ToastChip", VoidSolid, Steel);
         Anchor(toastRoot, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-        toastRoot.sizeDelta = new Vector2(640, 48);
+        toastRoot.sizeDelta = new Vector2(820, 48);
         toastRoot.anchoredPosition = new Vector2(0, -16);
         ui.toastRoot = toastRoot.gameObject;
-        ui.toastText = Label(toastRoot, "Txt", "", 16, Fog, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(620, 44));
+        ui.toastText = Label(toastRoot, "Txt", "", 16, Fog, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(800, 44));
         toastRoot.gameObject.SetActive(false);
 
-        // hint line (bottom-left) — case chrome, hidden while THE QUEUE runs
-        ui.hintRoot = Label(canvasGo.transform, "Hint", "TAB CASE FILE   E HOLD SIGHT   F EXAMINE", 16, Fog, TextAnchor.LowerLeft, new Vector2(16, 10), new Vector2(700, 20), anchorBottomLeft: true).gameObject;
+        // hint chips (bottom-left): real key sprites, not bare letters
+        var hintRoot = new GameObject("HintChips", typeof(RectTransform));
+        var hintRt = (RectTransform)hintRoot.transform;
+        hintRt.SetParent(canvasGo.transform, false);
+        Anchor(hintRt, Vector2.zero, Vector2.zero, Vector2.zero);
+        hintRt.anchoredPosition = new Vector2(16, 8);
+        hintRt.sizeDelta = new Vector2(700, 28);
+        void HintChip(string key, string label, float x, float labelWidth)
+        {
+            var k = KeySprite(hintRt, $"K_{key}", $"key_{key}", 24);
+            if (k != null) k.anchoredPosition = new Vector2(x + 12, 0);
+            Label(hintRt, $"L_{key}", label, 16, Fog, TextAnchor.MiddleLeft, new Vector2(x + 28, 0), new Vector2(labelWidth, 24));
+        }
+        HintChip("TAB", "CASE FILE", 0, 120);
+        HintChip("E", "HOLD SIGHT", 160, 130);
+        HintChip("F", "EXAMINE", 330, 110);
+        ui.hintRoot = hintRoot;
 
         // ── the dossier panel ──
         // 688 tall — must fit a 720 window under ConstantPixelSize
@@ -166,19 +181,31 @@ public static class CaseSetup
 
         var titles = new List<Text>();
         var tags = new List<Text>();
+        string[] rowIcons = { "clue_thestop", "clue_witnesses", "clue_bench", "clue_sediment", "clue_archive", "clue_victim" };
         for (int i = 0; i < 6; i++)
         {
-            float y = -116 - i * 56;   // compressed pitch so the 688 panel holds all six
+            float y = -112 - i * 44;   // tight pitch: six rows + the ANALYSIS chain fit 688
             var row = Panel(panel, $"Row{i}", Concrete);
             Anchor(row, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            row.sizeDelta = new Vector2(492, 48);
+            row.sizeDelta = new Vector2(492, 40);
             row.anchoredPosition = new Vector2(0, y);
             Outline(row);
-            titles.Add(Label(row, "T", "· · · · · ·", 18, Steel, TextAnchor.MiddleLeft, new Vector2(14, 0), new Vector2(360, 44)));
-            tags.Add(Label(row, "Tag", "", 12, Fog, TextAnchor.MiddleRight, new Vector2(-12, 0), new Vector2(90, 44), pivotRight: true));
+            var ic = IconSprite(row, "Ic", rowIcons[i], 20);
+            if (ic != null) ic.anchoredPosition = new Vector2(18, 0);
+            titles.Add(Label(row, "T", "· · · · · ·", 18, Steel, TextAnchor.MiddleLeft, new Vector2(36, 0), new Vector2(340, 36)));
+            tags.Add(Label(row, "Tag", "", 12, Fog, TextAnchor.MiddleRight, new Vector2(-12, 0), new Vector2(90, 36), pivotRight: true));
         }
         ui.rowTitles = titles.ToArray();
         ui.rowTags = tags.ToArray();
+
+        // ANALYSIS — the running deduction under the evidence rows
+        Label(panel, "AnCap", "ANALYSIS", 14, Fog, TextAnchor.UpperLeft, new Vector2(24, -364), new Vector2(300, 18));
+        var an = new List<Text>
+        {
+            Label(panel, "An0", "", 14, Fog, TextAnchor.UpperLeft, new Vector2(24, -384), new Vector2(492, 18)),
+            Label(panel, "An1", "", 14, Fog, TextAnchor.UpperLeft, new Vector2(24, -402), new Vector2(492, 18)),
+        };
+        ui.analysisLines = an.ToArray();
 
         // classification
         var cls = Panel(panel, "Classify", new Color(0, 0, 0, 0));
@@ -229,16 +256,27 @@ public static class CaseSetup
         reading.title = Label(rp, "Title", "", 24, Paper, TextAnchor.UpperLeft, new Vector2(32, -366), new Vector2(500, 36));
         reading.title.verticalOverflow = VerticalWrapMode.Overflow;   // 32 px BoldPixels must never truncate to blank
         reading.stateTag = Label(rp, "Tag", "", 13, Fog, TextAnchor.UpperLeft, new Vector2(32, -398), new Vector2(400, 18));
-        reading.body = Label(rp, "Body", "", 18, Fog, TextAnchor.UpperLeft, new Vector2(32, -426), new Vector2(656, 150));
+        reading.body = Label(rp, "Body", "", 18, Fog, TextAnchor.UpperLeft, new Vector2(32, -426), new Vector2(656, 92));
         reading.body.horizontalOverflow = HorizontalWrapMode.Wrap;
         reading.body.color = Paper;
-        var closeHint = Label(rp, "CloseHint", "F — CLOSE RECORD", 13, Fog, TextAnchor.LowerRight, new Vector2(-24, 14), new Vector2(300, 18), pivotRight: true);
+        // legibility law: every record states WHAT IT MEANS and what it UNLOCKS
+        reading.meaning = Label(rp, "Meaning", "", 16, Fog, TextAnchor.UpperLeft, new Vector2(32, -524), new Vector2(656, 40));
+        reading.meaning.horizontalOverflow = HorizontalWrapMode.Wrap;
+        reading.unlocks = Label(rp, "Unlocks", "", 16, Paper, TextAnchor.UpperLeft, new Vector2(32, -572), new Vector2(656, 20));
+        var closeHint = Label(rp, "CloseHint", "CLOSE RECORD", 13, Fog, TextAnchor.LowerRight, new Vector2(-24, 14), new Vector2(200, 18), pivotRight: true);
         // pivotRight anchors middle-right; this hint belongs bottom-right,
         // clear of the photograph
         var chRt = (RectTransform)closeHint.transform;
         chRt.anchorMin = chRt.anchorMax = new Vector2(1f, 0f);
         chRt.pivot = new Vector2(1f, 0f);
         chRt.anchoredPosition = new Vector2(-24, 14);
+        var closeKey = KeySprite(rp, "CloseKey", "key_F", 24);
+        if (closeKey != null)
+        {
+            closeKey.anchorMin = closeKey.anchorMax = new Vector2(1f, 0f);
+            closeKey.pivot = new Vector2(1f, 0f);
+            closeKey.anchoredPosition = new Vector2(-232, 12);
+        }
         reading.panelRoot = rp.gameObject;
         rp.gameObject.SetActive(false);
         // transient chrome always wins the sibling war: the toast must draw
@@ -322,8 +360,37 @@ public static class CaseSetup
         return frame;
     }
 
+    /// Dossier icon (ReffPixels/Raven pixel art) at an integer scale.
+    /// Returns null if the icon isn't imported — layout must survive that.
+    internal static RectTransform IconSprite(Transform parent, string name, string slot, int px)
+    {
+        var path = $"Assets/Art/UI/Icons/icon_{slot}.png";
+        var ti = (TextureImporter)AssetImporter.GetAtPath(path);
+        if (ti == null) return null;
+        if (ti.textureType != TextureImporterType.Sprite || ti.filterMode != FilterMode.Point)
+        {
+            ti.textureType = TextureImporterType.Sprite;
+            ti.spriteImportMode = SpriteImportMode.Single;
+            ti.filterMode = FilterMode.Point;
+            ti.textureCompression = TextureImporterCompression.Uncompressed;
+            ti.mipmapEnabled = false;
+            ti.alphaIsTransparency = true;
+            ti.SaveAndReimport();
+        }
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        var rt = (RectTransform)go.transform;
+        rt.SetParent(parent, false);
+        Anchor(rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0.5f, 0.5f));
+        rt.sizeDelta = new Vector2(px, px);
+        var img = go.GetComponent<Image>();
+        img.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        img.preserveAspect = true;
+        img.color = Fog;   // icons read as chrome, not content
+        return rt;
+    }
+
     /// Key-prompt sprite (Vryell pack, 16 px art) at an integer scale.
-    static RectTransform KeySprite(Transform parent, string name, string key, int px)
+    internal static RectTransform KeySprite(Transform parent, string name, string key, int px)
     {
         var path = $"Assets/Art/UI/Keys/{key}.png";
         var ti = (TextureImporter)AssetImporter.GetAtPath(path);

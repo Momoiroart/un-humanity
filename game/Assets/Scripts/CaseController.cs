@@ -41,7 +41,13 @@ public class CaseController : MonoBehaviour
         bool changed = File.Collect(node.clueId, SightActive);
         if (ui != null)
         {
-            if (File.Log.Count > logBefore) ui.Toast(File.Log[File.Log.Count - 1]);
+            // the toast names the UNLOCK, not just the pickup — the player
+            // must always see what a clue just bought them
+            File.Catalog.TryGetValue(node.clueId, out var meta);
+            if (changed && meta != null && !string.IsNullOrEmpty(meta.Unlocks))
+                ui.Toast($"{meta.Title.ToUpperInvariant()} — {meta.Unlocks}");
+            else if (File.Log.Count > logBefore)
+                ui.Toast(File.Log[File.Log.Count - 1]);
             ui.Refresh();
         }
 
@@ -58,7 +64,8 @@ public class CaseController : MonoBehaviour
             int idx = (int)node.clueId;
             if (evidenceImages != null && idx >= 0 && idx < evidenceImages.Length)
                 img = evidenceImages[idx];
-            reading.Show(got.Clue.Title, got.Text, got.UnderSight, img);
+            reading.Show(got.Clue.Title, got.Text, got.UnderSight, img,
+                         got.Clue.Meaning, got.Clue.Unlocks);
         }
     }
 

@@ -27,13 +27,20 @@ namespace UnHumanity.Case
         public readonly string Title;
         public readonly string NormalcyText;   // null = reads as scenery in Normalcy
         public readonly string SightText;
+        public readonly string Meaning;        // what this evidence TELLS us, plain words
+        public readonly string Unlocks;        // the mechanical unlock it grants
+        public readonly string AnalysisLine;   // its line in the dossier's running deduction
 
-        public Clue(ClueId id, string title, string normalcyText, string sightText)
+        public Clue(ClueId id, string title, string normalcyText, string sightText,
+                    string meaning = null, string unlocks = null, string analysisLine = null)
         {
             Id = id;
             Title = title;
             NormalcyText = normalcyText;
             SightText = sightText;
+            Meaning = meaning;
+            Unlocks = unlocks;
+            AnalysisLine = analysisLine;
         }
 
         public bool RespondsInNormalcy => NormalcyText != null;
@@ -113,22 +120,40 @@ namespace UnHumanity.Case
         {
             new Clue(ClueId.TheStop, "The stop",
                 null,
-                "There is no man. A seated absence — the bench holds the shape of someone waiting."),
+                "There is no man. A seated absence — the bench holds the shape of someone waiting.",
+                meaning: "There is no man at that stop — the thing is the wait itself, holding the shape of someone.",
+                unlocks: "UNLOCKS: FORECAST — read its next cheat before it plays it",
+                analysisLine: "No one is waiting at the stop. The wait itself is the thing."),
             new Clue(ClueId.Witnesses, "Witness statements",
                 "Two people saw him. Tall, they say. Short. Old. Young. They are both certain.",
-                "The descriptions never match because nothing is being described."),
+                "The descriptions never match because nothing is being described.",
+                meaning: "Everyone sees a different man because there is no man; their minds fill the empty seat.",
+                unlocks: "UNLOCKS: ESCORT (with THE COMMUTER) — know who out there is real",
+                analysisLine: "No true shape — every witness's mind fills the seat differently."),
             new Clue(ClueId.Bench, "The bench",
                 null,
-                "Installed eight months ago; weathered like fifty years. Four replacement work orders on file — every bench here \"ages overnight.\""),
+                "Installed eight months ago; weathered like fifty years. Four replacement work orders on file — every bench here \"ages overnight.\"",
+                meaning: "It drains time from whatever waits near it — the bench pays fifty years in eight months.",
+                unlocks: "RAISES: CLASSIFICATION — a classified file is the win condition",
+                analysisLine: "It breaks one rule: waiting costs time. Its wait costs it nothing."),
             new Clue(ClueId.Sediment, "Sediment",
                 null,
-                "Newspaper strata under the bench, pressed like geology. The bottom layer is dated October 1974."),
+                "Newspaper strata under the bench, pressed like geology. The bottom layer is dated October 1974.",
+                meaning: "It has sat in this exact spot, without moving, since October 1974.",
+                unlocks: "RAISES: CLASSIFICATION — dates the wait: OCTOBER 1974",
+                analysisLine: "Anchored to this stop since October 1974. It has never moved."),
             new Clue(ClueId.Archive, "Transit archive",
                 null,
-                "Route 9 night service — discontinued October 1974. The complaints go back decades. They are all the same complaint."),
+                "Route 9 night service — discontinued October 1974. The complaints go back decades. They are all the same complaint.",
+                meaning: "It is waiting for the Route 9 night bus — cancelled October 1974; what it waits for is never coming.",
+                unlocks: "UNLOCKS: RADIO CHECK-IN — the schedule is a weapon",
+                analysisLine: "Night service cut 10/1974 — it waits for a last bus that never came."),
             new Clue(ClueId.Victim, "The commuter",
                 null,
-                "She sits beside the absence, patient, drained. Asked how long she's waited: \"twenty minutes.\" Her phone has been here nine days."),
+                "She sits beside the absence, patient, drained. Asked how long she's waited: \"twenty minutes.\" Her phone has been here nine days.",
+                meaning: "It doesn't attack — it makes whoever waits beside it pay its time; she felt twenty minutes and lost nine days.",
+                unlocks: "UNLOCKS: ESCORT (with WITNESS STATEMENTS) — you can't walk out someone you haven't seen",
+                analysisLine: "Bystanders pay its time for it. It cheats the wait; order, held, ends it."),
         });
     }
 }

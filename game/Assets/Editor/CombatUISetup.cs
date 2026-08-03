@@ -77,8 +77,10 @@ public static class CombatUISetup
         ui.knowledgeLine.supportRichText = true;
 
         // ── the Waiter panel + its EMPTY cost frame ──
+        // low enough that the weakpoint knowledge line clears it even on
+        // 720-high windows
         var wp = Panel(root, "WaiterPanel", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), Void_);
-        wp.sizeDelta = new Vector2(360, 170); wp.anchoredPosition = new Vector2(200, 120);
+        wp.sizeDelta = new Vector2(360, 170); wp.anchoredPosition = new Vector2(200, 40);
         Border(wp);
         Label(wp, "Name", "THE WAITER", 24, Anomaly, TextAnchor.UpperLeft, new Vector2(14, -10), new Vector2(330, 30));
         ui.waiterStatus = Label(wp, "Status", "it waits.", 16, Fog, TextAnchor.UpperLeft, new Vector2(14, -44), new Vector2(330, 44));
@@ -117,8 +119,16 @@ public static class CombatUISetup
         }
         ui.logLines = lines.ToArray();
 
+        // kit strip — the occupation-power voice, just above the action bar
+        ui.kitStrip = Label(root, "KitStrip", "", 15, Fog, TextAnchor.MiddleCenter, new Vector2(0, 122), new Vector2(1200, 24));
+        var ksRt = (RectTransform)ui.kitStrip.transform;
+        ksRt.anchorMin = ksRt.anchorMax = new Vector2(0.5f, 0f);
+        ksRt.pivot = new Vector2(0.5f, 0f);
+        ksRt.anchoredPosition = new Vector2(0, 122);
+
         // ── action bar (6: the kit + withdraw) ──
         string[] names = { "FLARE", "RADIO CHECK-IN", "PHOTOGRAPH", "ESCORT", "HOLD", "WITHDRAW" };
+        string[] iconSlots = { "action_flare", "action_radio", "action_photograph", "action_escort", "action_hold", "action_withdraw" };
         var btns = new List<Button>(); var bNames = new List<Text>(); var bCosts = new List<Text>();
         for (int i = 0; i < names.Length; i++)
         {
@@ -132,6 +142,8 @@ public static class CombatUISetup
             btn.targetGraphic = b.GetComponent<Image>();
             int idx = i;
             UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnAction, idx);
+            var icon = CaseSetup.IconSprite(b, "Ic", iconSlots[i], 24);
+            if (icon != null) icon.anchoredPosition = new Vector2(20, 0);
             bNames.Add(Label(b, "N", names[i], 20, Paper, TextAnchor.UpperCenter, new Vector2(0, -12), new Vector2(220, 26)));
             bCosts.Add(Label(b, "C", "", 14, Fog, TextAnchor.LowerCenter, new Vector2(0, 10), new Vector2(220, 22)));
             btns.Add(btn);
@@ -139,6 +151,18 @@ public static class CombatUISetup
         ui.actionButtons = btns.ToArray();
         ui.actionNames = bNames.ToArray();
         ui.actionCosts = bCosts.ToArray();
+
+        // occupation-power voice: every action names its REAL cost —
+        // paying costs is what makes us not-them (GDD §6, v0.4)
+        ui.actionFlavor = new[]
+        {
+            "Burn one flare. It ends on its own clock — paid time is a weapon.",
+            "One call, three rounds of silence after. A schedule cuts both ways.",
+            "One frame of film, spent. The flash proves a moment happened.",
+            "Your whole turn, spent walking her out at human speed.",
+            "Costs your time — the one thing it farms. Spend it knowingly.",
+            "Costs the case, not you. Stopping your own wait is always legal.",
+        };
 
         // ── outcome banner ──
         var banner = Panel(root, "Outcome", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Void_);

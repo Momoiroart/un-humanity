@@ -21,6 +21,8 @@ public class ProximityDread : MonoBehaviour
     FilmGrain grain;
     Vignette vignette;
     bool bound;
+    bool stung;
+    float stingCooldownUntil;
 
     void Bind()
     {
@@ -45,6 +47,15 @@ public class ProximityDread : MonoBehaviour
         chroma.intensity.value = Mathf.Lerp(0.35f, 1.0f, s);
         if (grain != null) grain.intensity.value = Mathf.Lerp(0.25f, 0.65f, s);
         if (vignette != null) vignette.intensity.value = Mathf.Lerp(0.38f, 0.56f, s);
+
+        // one sting as the dread peaks — then silence until you back off
+        if (s > 0.7f && !stung && Time.time > stingCooldownUntil)
+        {
+            SfxBoss.Play("dread_sting");
+            stung = true;
+            stingCooldownUntil = Time.time + 18f;
+        }
+        if (s < 0.45f) stung = false;
         RenderSettings.fogDensity = Mathf.Lerp(
             Mathf.Lerp(sightState.normalcyFogDensity, sightState.sightFogDensity, sightState.blend),
             0.045f, s);

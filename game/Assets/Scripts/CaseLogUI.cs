@@ -2,6 +2,7 @@
 // fill in as evidence lands; the classification fork arms at four pieces.
 // Also owns the always-on HUD: sight meter cells, interact prompt, toast.
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -22,6 +23,7 @@ public class CaseLogUI : MonoBehaviour
     public GameObject classifyButtons;
     public Text classifyNote;
     public Text verdictStamp;
+    public Text[] analysisLines;  // the running deduction, newest last
     public Image[] sightCells;    // 10 HUD cells
     public GameObject promptRoot; // keycap chip — readable on any backdrop
     public Text promptText;
@@ -57,6 +59,7 @@ public class CaseLogUI : MonoBehaviour
         if (kb != null && kb.tabKey.wasPressedThisFrame && panelRoot != null && !combat && !readingOpen)
         {
             panelRoot.SetActive(!panelRoot.activeSelf);
+            SfxBoss.Play(panelRoot.activeSelf ? "case_open" : "record_close");
             if (panelRoot.activeSelf) Refresh();
         }
 
@@ -99,7 +102,8 @@ public class CaseLogUI : MonoBehaviour
         if (toastText == null || QueueCombatUI.CombatActive) return;
         toastText.text = message;
         if (toastRoot != null) toastRoot.SetActive(true);
-        toastUntil = Time.realtimeSinceStartup + 3.5f;
+        toastUntil = Time.realtimeSinceStartup + 4.5f;
+        SfxBoss.Play("toast");
     }
 
     public void Refresh()
@@ -122,6 +126,24 @@ public class CaseLogUI : MonoBehaviour
             i++;
         }
 
+        // ANALYSIS — the deduction assembles as evidence lands, so the
+        // player can watch the clues CONNECT (newest lines shown)
+        if (analysisLines != null && analysisLines.Length > 0)
+        {
+            var chain = new List<string>();
+            foreach (var clue in file.Catalog.Values)
+                if (file.Has(clue.Id) && !string.IsNullOrEmpty(clue.AnalysisLine))
+                    chain.Add(clue.AnalysisLine);
+            for (int k = 0; k < analysisLines.Length; k++)
+            {
+                int idx = chain.Count - analysisLines.Length + k;
+                analysisLines[k].text = idx >= 0 ? $"› {chain[idx]}" : "";
+                analysisLines[k].color = (k == analysisLines.Length - 1 && chain.Count > 0) ? Paper : Fog;
+            }
+            if (chain.Count == 0 && analysisLines.Length > 0)
+                analysisLines[0].text = "› no evidence yet. The street knows more than you do.";
+        }
+
         if (classifySection != null)
         {
             bool armed = file.CanClassify;
@@ -141,6 +163,6 @@ public class CaseLogUI : MonoBehaviour
     }
 
     // button hooks
-    public void OnClassifyUnHumanity() => controller.Classify(Verdict.UnHumanity);
-    public void OnClassifyRemnant() => controller.Classify(Verdict.Remnant);
+    public void OnClassifyUnHumanity() { SfxBoss.Play("ui_click"); controller.Classify(Verdict.UnHumanity); }
+    public void OnClassifyRemnant() { SfxBoss.Play("ui_click"); controller.Classify(Verdict.Remnant); }
 }

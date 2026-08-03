@@ -59,6 +59,7 @@ public class StoryUI : MonoBehaviour
                     || (pad != null && pad.buttonSouth.wasPressedThisFrame);
         if (!advance) return;
 
+        SfxBoss.Play("ui_click");
         switch (Current)
         {
             case Beat.Dispatch: Hide(); break;
@@ -69,11 +70,15 @@ public class StoryUI : MonoBehaviour
 
     public void ShowDispatch()
     {
-        Show(Beat.Dispatch, "DISPATCH — 21:12",
-            "Transit complaints, Route 9 northbound: drivers skip the stop — \"someone's already waiting.\"\n\n" +
-            "A missing person's phone has geolocated at that stop for 61 hours.\n\n" +
-            "Walk the block. Hold E to See. F examines. TAB is your case file.\n" +
-            "Classify before you commit. Or don't. Learn either way.",
+        Show(Beat.Dispatch, "DISPATCH — 05:47",
+            "Last week you saw something. You weren't supposed to be able to. Most people can't See. " +
+            "You can — which is why this reached you instead of a hospital. We are the Organization. There is no other name.\n\n" +
+            "Route 9, northbound. Transit complaints: drivers skip the stop — \"someone's already waiting.\" " +
+            "One commuter missing. Her phone hasn't left that stop in nine days.\n\n" +
+            "Work it like this: examine what responds (F). Hold E to See what is actually there — Sight costs, watch the meter. " +
+            "Evidence goes in the case file (TAB). The file must be CLASSIFIED before the thing at the end of the road can be resolved. " +
+            "Understanding is the weapon. There is no other weapon.\n\n" +
+            "Go now. Be gone before the morning bus crowd notices you noticing.",
             "F — ACCEPT THE CASE");
     }
 
@@ -135,8 +140,10 @@ public class StoryUI : MonoBehaviour
     void ShowBookend()
     {
         Show(Beat.Bookend, "COVER LIFE — 00:52",
-            "You wait for your own bus home.\n\n" +
-            "You check the schedule twice.\n\n" +
+            "Your bus home is the 00:58. You wait at your own stop on an ordinary street — " +
+            "homework unstarted, phone at four percent, school in six hours.\n\n" +
+            "The bench is just a bench. You checked.\n\n" +
+            "You check the schedule anyway.\n\nTwice.\n\n" +
             "FILE UH-001 · logged.",
             "F — CLOCK OUT");
     }
