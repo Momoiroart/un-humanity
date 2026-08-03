@@ -24,6 +24,32 @@ namespace UnHumanity.Combat
         }
     }
 
+    /// ATTACK — the floor (Combat_System §4). A snapshot jab: modest,
+    /// human, always available, no matchup lock, no evidence requirement.
+    /// It can never win — but from a correctly diagnosed matchup it is the
+    /// EXPOSURE delivery verb (§7): the protagonist's craft is Time, the
+    /// Waiter cheats Time, and a classified file names the cheat — so the
+    /// jab suspends the next illegal move. Blind, it lands on nothing it
+    /// needs. Ordinary act: [WAITING] blocks it.
+    public sealed class AttackAction : PlayerAction
+    {
+        public override string Name => "Snapshot jab";
+        public override string Cost => "always yours";
+        public override bool CanExecute(CombatState s) => true;
+        public override void Execute(CombatState s)
+        {
+            if (s.Knowledge.Classified)
+            {
+                Suppress(s, 1, "EXPOSURE — the cheat is seen, named, and suspended");
+                s.Log.Add(new LogEvent(s.Player.Name, "jabs through the frame — the file gives the strike its name"));
+            }
+            else
+            {
+                s.Log.Add(new LogEvent(s.Player.Name, "jabs. It lands. It does not notice — the file would give this teeth"));
+            }
+        }
+    }
+
     /// Organization kit: a lit flare has a schedule — it burns, then it ends.
     public sealed class FlareAction : PlayerAction
     {

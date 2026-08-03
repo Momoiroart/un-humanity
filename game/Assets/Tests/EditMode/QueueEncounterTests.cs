@@ -260,14 +260,58 @@ namespace UnHumanity.Combat.Tests
         [Test]
         public void ThereIsNoDamagePath()
         {
-            // The API surface itself is the assertion: no HP, no attack action.
+            // The API surface itself is the assertion: no HP anywhere.
+            // ATTACK exists (Combat_System §4) but carries no damage number
+            // and no win path — it is the floor, not a route to victory.
             var actions = new PlayerAction[]
             {
-                new FlareAction(), new RadioCheckInAction(),
+                new AttackAction(), new FlareAction(), new RadioCheckInAction(),
                 new PhotographAction(), new EscortStepAction(), new HoldAction(),
             };
             Assert.IsTrue(actions.All(a => a.Cost.Length > 0),
                 "every player action names a real cost — the cost panel is never empty on our side");
+        }
+
+        // ── ATTACK + EXPOSURE (Combat_System §4/§7) ─────────────────────
+        [Test]
+        public void Attack_Blind_LandsButExposesNothing()
+        {
+            var f = new QueueEncounter(new CombatState(victimClock: 10,
+                knowledge: EncounterKnowledge.None));
+            f.RunRound(new HoldAction());                     // r1 theft
+            f.WaiterPhase();                                  // r2: counter deletion
+            Assert.IsTrue(f.PlayerPhase(new AttackAction()), "attack is always available");
+            Assert.AreEqual(IllegalMove.CounterDeletion, f.State.ActiveIllegalMove,
+                "blind, the jab names nothing — the cheat stands");
+            Assert.AreEqual(0, f.State.SuppressionRounds, "no file, no Exposure");
+            Assert.AreEqual(Outcome.Ongoing, f.State.Outcome);
+        }
+
+        [Test]
+        public void Attack_WithClassifiedFile_TriggersExposure()
+        {
+            var f = new QueueEncounter(new CombatState(victimClock: 10,
+                playerIsPhotographer: false, knowledge: EncounterKnowledge.All));
+            f.RunRound(new HoldAction());                     // r1 theft
+            f.WaiterPhase();                                  // r2: counter deletion
+            Assert.IsTrue(f.PlayerPhase(new AttackAction()));
+            Assert.AreEqual(IllegalMove.None, f.State.ActiveIllegalMove,
+                "Exposure suspends the active cheat");
+            f.EndRound();
+            f.WaiterPhase();                                  // r3 would cheat — suppressed
+            Assert.AreEqual(IllegalMove.None, f.State.ActiveIllegalMove,
+                "a classified file guarantees Exposure on first hit (§7)");
+        }
+
+        [Test]
+        public void Attack_IsOrdinary_WaitingBlocksIt()
+        {
+            var f = NewFight();
+            f.RunRound(new HoldAction());                     // r1
+            f.RunRound(new HoldAction());                     // r2
+            f.WaiterPhase();                                  // r3 = [WAITING]
+            Assert.IsFalse(f.PlayerPhase(new AttackAction()),
+                "a jab is an ordinary act — the wait refuses it; enforcement tools pierce, fists don't");
         }
     }
 }

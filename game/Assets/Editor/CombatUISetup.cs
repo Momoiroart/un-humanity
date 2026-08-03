@@ -169,26 +169,10 @@ public static class CombatUISetup
             backBtns.Add(btn);
         }
 
-        // tier-1 — CHECK's promise is printed on the button itself
-        string[] topTitles = { "CHECK", "ACT", "KIT", "WITHDRAW" };
-        string[] topSubs = { "free — does not pass the round", "protocol — trained moves", "tools — real costs", "the case stays open" };
-        string[] topIcons = { "ui_verdict", "action_escort", "action_photograph", "action_withdraw" };
-        float[] topX = { -420, -140, 140, 420 };
-        var topBtns = new Button[4]; var topNames = new Text[4];
-        for (int i = 0; i < 4; i++)
-        {
-            var (_, btn) = CmdButton(rowTop, $"Top_{topTitles[i]}", topIcons[i], topX[i], 260,
-                topTitles[i], topSubs[i], out var nT, out _);
-            UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnTop, i);
-            topBtns[i] = btn; topNames[i] = nT;
-        }
-        ui.topButtons = topBtns;
-        ui.topNames = topNames;
-
-        // submenus — the six engine actions keep indices 0-5
-        string[] names = { "FLARE", "RADIO CHECK-IN", "PHOTOGRAPH", "ESCORT", "HOLD", "WITHDRAW" };
-        string[] iconSlots = { "action_flare", "action_radio", "action_photograph", "action_escort", "action_hold", "action_withdraw" };
-        var btns = new Button[6]; var bNames = new Text[6]; var bCosts = new Text[6];
+        // the seven engine actions: 0-5 as ever, 6 = ATTACK (Combat_System §4)
+        string[] names = { "FLARE", "RADIO CHECK-IN", "FLASH", "ESCORT", "HOLD", "WITHDRAW", "ATTACK" };
+        string[] iconSlots = { "action_flare", "action_radio", "action_photograph", "action_escort", "action_hold", "action_withdraw", "action_photograph" };
+        var btns = new Button[7]; var bNames = new Text[7]; var bCosts = new Text[7];
         void RealAction(RectTransform rparent, int idx, float x, float w = 230)
         {
             var (_, btn) = CmdButton(rparent, $"Action_{names[idx]}", iconSlots[idx], x, w,
@@ -196,14 +180,36 @@ public static class CombatUISetup
             UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnAction, idx);
             btns[idx] = btn; bNames[idx] = nT; bCosts[idx] = cT;
         }
+
+        // tier-1: ATTACK is a live action; the other three open submenus
+        RealAction(rowTop, 6, -420, 260);   // ATTACK — snapshot jab / Exposure
+        string[] topTitles = { "SKILL", "PROCEDURE", "WITHDRAW" };
+        string[] topSubs = { "your craft — light and film", "what the file unlocks", "the case stays open" };
+        string[] topIcons = { "action_flare", "action_radio", "action_withdraw" };
+        float[] topX = { -140, 140, 420 };
+        int[] topHooks = { 2, 1, 3 };   // SKILL opens rowKit, PROCEDURE opens rowAct
+        var topBtns = new Button[3]; var topNames = new Text[3];
+        for (int i = 0; i < 3; i++)
+        {
+            var (_, btn) = CmdButton(rowTop, $"Top_{topTitles[i]}", topIcons[i], topX[i], 260,
+                topTitles[i], topSubs[i], out var nT, out _);
+            UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnTop, topHooks[i]);
+            topBtns[i] = btn; topNames[i] = nT;
+        }
+        ui.topButtons = topBtns;
+        ui.topNames = topNames;
+
+        // SKILL — the Photographer's inherent kit: light and film
+        RealAction(rowKit, 0, -240);   // FLARE
+        RealAction(rowKit, 2, 0);      // FLASH (engine: Photograph)
+        BackButton(rowKit, 200);
+        // PROCEDURE — the case's evidence-unlocked verbs
         RealAction(rowAct, 1, -360);   // RADIO CHECK-IN
         RealAction(rowAct, 3, -120);   // ESCORT
         RealAction(rowAct, 4, 120);    // HOLD
         BackButton(rowAct, 320);
-        RealAction(rowKit, 0, -240);   // FLARE
-        RealAction(rowKit, 2, 0);      // PHOTOGRAPH
-        BackButton(rowKit, 200);
-        RealAction(rowWd, 5, -120, 260);  // WITHDRAW (the confirm IS the submenu)
+        // WITHDRAW — the confirm IS the submenu
+        RealAction(rowWd, 5, -120, 260);
         BackButton(rowWd, 100);
 
         ui.actionButtons = btns;
@@ -228,15 +234,14 @@ public static class CombatUISetup
             "Your whole turn, spent walking her out at human speed.",
             "Costs your time — the one thing it farms. Spend it knowingly.",
             "Costs the case, not you. Stopping your own wait is always legal.",
+            "A jab through the frame. Modest, human — with a classified file, it EXPOSES the cheat.",
         };
         ui.menuHints = new[]
         {
-            "Check, act, spend, or stop waiting — the four moves a human has. It has one.",
-            "Protocol. Radio, escort, hold — trained verbs. Each one puts time back in order.",
-            "Tools burn real stock — flares, film. The cost is the power: you can pay one. It can't.",
+            "Attack, skill, procedure — or stop waiting. Your craft is Time. So is its cheat.",
+            "PROCEDURE — what the file unlocks. Radio, escort, hold: each puts time back in order.",
+            "SKILL — the photographer's craft: light and film. Real costs, real power.",
         };
-        ui.checkWithForecast = "FORECAST LIVE — the line under its status is its next cheat. Answer with protocol; spend tools when order slips.";
-        ui.checkWithoutForecast = "It waits. That is all CHECK can read — you never studied the stop. The file is the missing weapon.";
 
         // ── outcome banner ──
         var banner = Panel(root, "Outcome", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Void_);

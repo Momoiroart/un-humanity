@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &6738865797350775280
+--- !u!1 &3816614338231875590
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,10 +8,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7753141108436144681}
-  - component: {fileID: 7689821066658955259}
-  - component: {fileID: 2753124928867635132}
-  - component: {fileID: 7552950327772608712}
+  - component: {fileID: 3282510935457988572}
+  - component: {fileID: 7567127952622746345}
+  - component: {fileID: 1287261340707973286}
+  - component: {fileID: 8556737796217555260}
   m_Layer: 0
   m_Name: SpriteQuad
   m_TagString: Untagged
@@ -19,36 +19,36 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7753141108436144681
+--- !u!4 &3282510935457988572
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6738865797350775280}
+  m_GameObject: {fileID: 3816614338231875590}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.84375, z: 0}
   m_LocalScale: {x: 1, y: 1.6875, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3374241494435251994}
+  m_Father: {fileID: 8287457043983636693}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &7689821066658955259
+--- !u!33 &7567127952622746345
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6738865797350775280}
+  m_GameObject: {fileID: 3816614338231875590}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &2753124928867635132
+--- !u!23 &1287261340707973286
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6738865797350775280}
+  m_GameObject: {fileID: 3816614338231875590}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -91,20 +91,20 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7552950327772608712
+--- !u!114 &8556737796217555260
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6738865797350775280}
+  m_GameObject: {fileID: 3816614338231875590}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d216aec04009ea749a3250522a7d539c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BillboardY
   leanBack: 4
---- !u!1 &8989298661235650115
+--- !u!1 &4841818992864853773
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -112,10 +112,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3374241494435251994}
-  - component: {fileID: 86073285788440353}
-  - component: {fileID: 4270755258996772770}
-  - component: {fileID: 6396631198880684297}
+  - component: {fileID: 8287457043983636693}
+  - component: {fileID: 166542525992181848}
+  - component: {fileID: 7032052488262471724}
+  - component: {fileID: 8292683596486228369}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -123,29 +123,29 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3374241494435251994
+--- !u!4 &8287457043983636693
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8989298661235650115}
+  m_GameObject: {fileID: 4841818992864853773}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7753141108436144681}
+  - {fileID: 3282510935457988572}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!143 &86073285788440353
+--- !u!143 &166542525992181848
 CharacterController:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8989298661235650115}
+  m_GameObject: {fileID: 4841818992864853773}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -164,13 +164,13 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.85, z: 0}
---- !u!114 &4270755258996772770
+--- !u!114 &7032052488262471724
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8989298661235650115}
+  m_GameObject: {fileID: 4841818992864853773}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 65ae0936a86adfa4796629724494ed55, type: 3}
@@ -178,23 +178,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   walkSpeed: 3
   gravity: 20
-  spriteQuad: {fileID: 7753141108436144681}
+  spriteQuad: {fileID: 3282510935457988572}
   sightState: {fileID: 0}
   sightBlendSpeed: 3
---- !u!114 &6396631198880684297
+--- !u!114 &8292683596486228369
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8989298661235650115}
+  m_GameObject: {fileID: 4841818992864853773}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 698d2944224073941bcac918f7e18db8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpriteAnimator
-  controller: {fileID: 4270755258996772770}
-  quad: {fileID: 2753124928867635132}
+  controller: {fileID: 7032052488262471724}
+  quad: {fileID: 1287261340707973286}
   walkFps: 7
   idleFps: 2
   walkFrames: 4

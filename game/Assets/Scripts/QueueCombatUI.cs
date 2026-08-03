@@ -32,13 +32,11 @@ public class QueueCombatUI : MonoBehaviour
 
     // ── the familiar command grammar (Undertale/E33 shell) ──
     // Tier-1 is always the same four verbs; submenus swap in place.
-    public GameObject rowTop, rowAct, rowKit, rowWithdraw;
-    public Button[] topButtons;   // CHECK / ACT / KIT / WITHDRAW openers
+    public GameObject rowTop, rowAct, rowKit, rowWithdraw;   // act = PROCEDURE, kit = SKILL
+    public Button[] topButtons;   // the SKILL / PROCEDURE / WITHDRAW openers
     public Text[] topNames;
     public Button[] backButtons;
-    public string[] menuHints = new string[3];   // top / act / kit (wired by setup)
-    public string checkWithForecast = "";
-    public string checkWithoutForecast = "";
+    public string[] menuHints = new string[3];   // fallback / procedure / skill (wired by setup)
 
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
@@ -92,7 +90,9 @@ public class QueueCombatUI : MonoBehaviour
         {
             new FlareAction(), new RadioCheckInAction(), new PhotographAction(),
             new EscortStepAction(), new HoldAction(), new WithdrawAction(),
+            new AttackAction(),   // index 6 — tier-1 ATTACK
         };
+        lastFlavor = null;
         CombatActive = true;
         CancelInvoke(nameof(StopEncounter));   // a withdraw-then-quick-restart must not kill the new fight
         var openRecord = FindFirstObjectByType<ReadingUI>();
@@ -108,6 +108,22 @@ public class QueueCombatUI : MonoBehaviour
     }
 
     // ── menu navigation ──
+    string lastFlavor;
+
+    /// Tier-1's strip is ambient intel: the last action's cost line over a
+    /// live kit readout — the CHECK payload with zero clicks.
+    string ComposeTopStrip()
+    {
+        if (fight == null) return menuHints != null && menuHints.Length > 0 ? menuHints[0] ?? "" : "";
+        var s = fight.State;
+        string live =
+            $"FLARE ×{s.Player.Flares}" +
+            (s.Player.HasCamera ? $" · FILM ×{s.Player.FilmRemaining}" : " · no camera") +
+            " · RADIO " + (s.Knowledge.KnowsSchedule ? (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready") : "LOCKED") +
+            " · ESCORT " + (s.Knowledge.KnowsVictim ? $"{s.EscortProgress}/{s.EscortStepsNeeded}" : "LOCKED");
+        return string.IsNullOrEmpty(lastFlavor) ? live : lastFlavor + "\n" + live;
+    }
+
     void ShowMenuRow(GameObject row)
     {
         if (rowTop != null) rowTop.SetActive(row == rowTop);
@@ -122,19 +138,19 @@ public class QueueCombatUI : MonoBehaviour
             if (first != null && es != null) es.SetSelectedGameObject(first.gameObject);
         }
         if (kitStrip == null || menuHints == null) return;
-        if (row == rowTop && menuHints.Length > 0) kitStrip.text = menuHints[0] ?? "";
+        if (row == rowTop) kitStrip.text = ComposeTopStrip();
         else if (row == rowAct && menuHints.Length > 1) kitStrip.text = menuHints[1] ?? "";
         else if (row == rowKit && menuHints.Length > 2) kitStrip.text = menuHints[2] ?? "";
     }
 
-    /// Tier-1 hook: 0 = CHECK (free), 1 = ACT, 2 = KIT, 3 = WITHDRAW (confirm row).
+    /// Tier-1 opener hook: 1 = PROCEDURE, 2 = SKILL, 3 = WITHDRAW (confirm
+    /// row). ATTACK is a real action and binds OnAction(6) directly.
     public void OnTop(int i)
     {
         if (fight == null || fight.State.Outcome != Outcome.Ongoing) return;
         SfxBoss.Play("ui_click");
         switch (i)
         {
-            case 0: DoCheck(); break;
             case 1: ShowMenuRow(rowAct); break;
             case 2: ShowMenuRow(rowKit); break;
             case 3: ShowMenuRow(rowWithdraw); break;
@@ -147,22 +163,6 @@ public class QueueCombatUI : MonoBehaviour
         ShowMenuRow(rowTop);
     }
 
-    /// CHECK is free — it spends nothing and never passes the round.
-    /// Its unique payload: your kit's live state in one line (status and
-    /// forecast are already ambient on the Waiter panel).
-    void DoCheck()
-    {
-        var s = fight.State;
-        var fc = fight.ForecastNext();
-        string kitLine =
-            $"FLARE ×{s.Player.Flares}" +
-            (s.Player.HasCamera ? $" · FILM ×{s.Player.FilmRemaining}" : " · no camera") +
-            " · RADIO " + (s.Knowledge.KnowsSchedule ? (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready") : "LOCKED") +
-            " · ESCORT " + (s.Knowledge.KnowsVictim ? $"{s.EscortProgress}/{s.EscortStepsNeeded}" : "LOCKED");
-        if (kitStrip != null)
-            kitStrip.text = (fc != null ? checkWithForecast : checkWithoutForecast) + "\n" + kitLine;
-    }
-
     public void StopEncounter()
     {
         fight = null;
@@ -173,7 +173,7 @@ public class QueueCombatUI : MonoBehaviour
 
     /// Button hook. On a stolen turn the attempt fails inside the engine and
     /// the round passes anyway — that is the design, not a bug.
-    static readonly string[] kActionCues = { "flare", "radio", "photograph", "escort", "hold", "withdraw" };
+    static readonly string[] kActionCues = { "flare", "radio", "photograph", "escort", "hold", "withdraw", "photograph" };
     public string[] actionFlavor;   // serialized; wired by CombatUISetup (occupation-power voice)
 
     public void OnAction(int index)
@@ -182,12 +182,12 @@ public class QueueCombatUI : MonoBehaviour
         SfxBoss.Play(kActionCues[index]);
         if (kitStrip != null && actionFlavor != null && index < actionFlavor.Length)
             kitStrip.text = actionFlavor[index];
+        if (actionFlavor != null && index < actionFlavor.Length)
+            lastFlavor = actionFlavor[index];
         fight.PlayerPhase(kit[index]);
         fight.EndRound();
         if (fight.State.Outcome == Outcome.Ongoing) fight.WaiterPhase();
         ShowMenuRow(rowTop);
-        if (kitStrip != null && actionFlavor != null && index < actionFlavor.Length)
-            kitStrip.text = actionFlavor[index];   // keep the cost line over the menu hint
         RefreshAll();
         PlayWaiterCue();
     }
@@ -276,6 +276,8 @@ public class QueueCombatUI : MonoBehaviour
                 : $"{s.EscortProgress}/{s.EscortStepsNeeded} · needs order",
             "your time",
             "the case stays open",
+            s.Knowledge.Classified ? "EXPOSURE ready — the file names the cheat"
+                : "it will not notice — finish the file",
         };
         // outcome ends the menu conversation: back to tier-1, everything
         // read-only under the banner
@@ -283,11 +285,16 @@ public class QueueCombatUI : MonoBehaviour
         if (!ongoing && rowTop != null && !rowTop.activeSelf) ShowMenuRow(rowTop);
         if (topButtons != null) foreach (var tb in topButtons) if (tb != null) tb.interactable = ongoing;
         if (backButtons != null) foreach (var bb in backButtons) if (bb != null) bb.interactable = ongoing;
-        // stolen-round telegraph on tier-1: ACT/KIT/WITHDRAW dim to Fog
-        // (this round is already gone); CHECK stays paper — it is free
-        if (topNames != null && topNames.Length == 4)
-            for (int k = 1; k < 4; k++)
-                if (topNames[k] != null) topNames[k].color = s.PlayerTurnStolenThisRound ? Fog : Paper;
+        // stolen-round telegraph on tier-1: the openers dim to Fog — the
+        // row itself says this round is already gone (ATTACK dims via the
+        // action loop below)
+        if (topNames != null)
+            foreach (var tn in topNames)
+                if (tn != null) tn.color = s.PlayerTurnStolenThisRound ? Fog : Paper;
+
+        // the ambient kit readout tracks every state change at tier-1
+        if (rowTop != null && rowTop.activeSelf && kitStrip != null)
+            kitStrip.text = ComposeTopStrip();
 
         for (int i = 0; i < actionButtons.Length; i++)
         {
