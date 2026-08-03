@@ -32,16 +32,19 @@ public class QueueCombatUI : MonoBehaviour
 
     // ── the familiar command grammar (Undertale/E33 shell) ──
     // Tier-1 is always the same four verbs; submenus swap in place.
-    public GameObject rowTop, rowAct, rowKit, rowWithdraw;   // act = PROCEDURE, kit = SKILL
+    public GameObject rowTop, rowAct, rowKit, rowItem, rowWithdraw;   // act=ACT, kit=SKILL, item=ITEM
+    public Image[] holdSegments;      // ITS HOLD — drains as order is sustained
+    public Image[] composureCells;    // COMPOSURE — your ability to stand in it
     public Button[] topButtons;   // the SKILL / PROCEDURE / WITHDRAW openers
     public Text[] topNames;
     public Button[] backButtons;
-    public string[] menuHints = new string[3];   // fallback / procedure / skill (wired by setup)
+    public string[] menuHints = new string[4];   // fallback / act / skill / item (wired by setup)
 
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
     static readonly Color Anomaly = new Color32(0xE4, 0x56, 0x8A, 0xFF);
     static readonly Color Steel = new Color32(0x3A, 0x3F, 0x48, 0xFF);
+    static readonly Color Wine = new Color32(0x5E, 0x20, 0x36, 0xFF);
 
     public Text knowledgeLine;    // wired by CombatUISetup
 
@@ -80,9 +83,9 @@ public class QueueCombatUI : MonoBehaviour
     }
 
     public void StartEncounter(bool photographer) =>
-        StartEncounter(EncounterKnowledge.All, photographer);
+        StartEncounter(EncounterKnowledge.All, photographer, hasPhoto: true);
 
-    public void StartEncounter(EncounterKnowledge knowledge, bool photographer)
+    public void StartEncounter(EncounterKnowledge knowledge, bool photographer, bool hasPhoto = false)
     {
         fight = new QueueEncounter(new CombatState(victimClock: 10,
             playerIsPhotographer: photographer, knowledge: knowledge));
@@ -90,9 +93,13 @@ public class QueueCombatUI : MonoBehaviour
         {
             new FlareAction(), new RadioCheckInAction(), new PhotographAction(),
             new EscortStepAction(), new HoldAction(), new WithdrawAction(),
-            new AttackAction(),   // index 6 — tier-1 ATTACK
+            new AttackAction(),        // 6 — tier-1 ATTACK
+            new SpeakTheDateAction(),  // 7 — ACT, from the case file
+            new ShowHerPhotoAction(),  // 8 — ACT, from the case file
         };
+        fight.State.Player.PhotoEvidence = hasPhoto;
         lastFlavor = null;
+        hoverDesc = null;
         CombatActive = true;
         CancelInvoke(nameof(StopEncounter));   // a withdraw-then-quick-restart must not kill the new fight
         var openRecord = FindFirstObjectByType<ReadingUI>();
@@ -109,19 +116,46 @@ public class QueueCombatUI : MonoBehaviour
 
     // ── menu navigation ──
     string lastFlavor;
+    string hoverDesc;
 
-    /// Tier-1's strip is ambient intel: the last action's cost line over a
-    /// live kit readout — the CHECK payload with zero clicks.
-    string ComposeTopStrip()
+    /// One arbiter owns the strip. Line 1: hover description > last action
+    /// flavor > the row's hint. Line 2: the live kit readout, never dropped.
+    public void SetHover(string desc) { hoverDesc = desc; UpdateStrip(); }
+    public void ClearHover() { hoverDesc = null; UpdateStrip(); }
+
+    GameObject CurrentRow()
     {
-        if (fight == null) return menuHints != null && menuHints.Length > 0 ? menuHints[0] ?? "" : "";
-        var s = fight.State;
-        string live =
-            $"FLARE ×{s.Player.Flares}" +
-            (s.Player.HasCamera ? $" · FILM ×{s.Player.FilmRemaining}" : " · no camera") +
-            " · RADIO " + (s.Knowledge.KnowsSchedule ? (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready") : "LOCKED") +
-            " · ESCORT " + (s.Knowledge.KnowsVictim ? $"{s.EscortProgress}/{s.EscortStepsNeeded}" : "LOCKED");
-        return string.IsNullOrEmpty(lastFlavor) ? live : lastFlavor + "\n" + live;
+        if (rowAct != null && rowAct.activeSelf) return rowAct;
+        if (rowKit != null && rowKit.activeSelf) return rowKit;
+        if (rowItem != null && rowItem.activeSelf) return rowItem;
+        if (rowWithdraw != null && rowWithdraw.activeSelf) return rowWithdraw;
+        return rowTop;
+    }
+
+    void UpdateStrip()
+    {
+        if (kitStrip == null) return;
+        string line1 = hoverDesc;
+        if (string.IsNullOrEmpty(line1))
+        {
+            var row = CurrentRow();
+            if (row == rowAct && menuHints.Length > 1) line1 = menuHints[1];
+            else if (row == rowKit && menuHints.Length > 2) line1 = menuHints[2];
+            else if (row == rowItem && menuHints.Length > 3) line1 = menuHints[3];
+            else line1 = lastFlavor ?? (menuHints.Length > 0 ? menuHints[0] : "");
+        }
+        string line2 = "";
+        if (fight != null)
+        {
+            var s = fight.State;
+            line2 =
+                $"FLARE ×{s.Player.Flares}" +
+                (s.Player.HasCamera ? $" · FILM ×{s.Player.FilmRemaining}" : " · no camera") +
+                " · RADIO " + (s.Knowledge.KnowsSchedule ? (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready") : "LOCKED") +
+                " · ESCORT " + (s.Knowledge.KnowsVictim ? $"{s.EscortProgress}/{s.EscortStepsNeeded}" : "LOCKED") +
+                (s.SuppressionRounds > 0 ? $" · ORDER HOLDS {s.SuppressionRounds}R" : "");
+        }
+        kitStrip.text = string.IsNullOrEmpty(line2) ? (line1 ?? "") : (line1 ?? "") + "\n" + line2;
     }
 
     void ShowMenuRow(GameObject row)
@@ -129,7 +163,9 @@ public class QueueCombatUI : MonoBehaviour
         if (rowTop != null) rowTop.SetActive(row == rowTop);
         if (rowAct != null) rowAct.SetActive(row == rowAct);
         if (rowKit != null) rowKit.SetActive(row == rowKit);
+        if (rowItem != null) rowItem.SetActive(row == rowItem);
         if (rowWithdraw != null) rowWithdraw.SetActive(row == rowWithdraw);
+        hoverDesc = null;   // selection moves; stale descriptions must not linger
         // pad/keyboard users get a live selection on every tier swap
         if (Application.isPlaying && row != null)
         {
@@ -137,10 +173,7 @@ public class QueueCombatUI : MonoBehaviour
             var es = UnityEngine.EventSystems.EventSystem.current;
             if (first != null && es != null) es.SetSelectedGameObject(first.gameObject);
         }
-        if (kitStrip == null || menuHints == null) return;
-        if (row == rowTop) kitStrip.text = ComposeTopStrip();
-        else if (row == rowAct && menuHints.Length > 1) kitStrip.text = menuHints[1] ?? "";
-        else if (row == rowKit && menuHints.Length > 2) kitStrip.text = menuHints[2] ?? "";
+        UpdateStrip();
     }
 
     /// Tier-1 opener hook: 1 = PROCEDURE, 2 = SKILL, 3 = WITHDRAW (confirm
@@ -154,6 +187,7 @@ public class QueueCombatUI : MonoBehaviour
             case 1: ShowMenuRow(rowAct); break;
             case 2: ShowMenuRow(rowKit); break;
             case 3: ShowMenuRow(rowWithdraw); break;
+            case 4: ShowMenuRow(rowItem); break;
         }
     }
 
@@ -173,7 +207,8 @@ public class QueueCombatUI : MonoBehaviour
 
     /// Button hook. On a stolen turn the attempt fails inside the engine and
     /// the round passes anyway — that is the design, not a bug.
-    static readonly string[] kActionCues = { "flare", "radio", "photograph", "escort", "hold", "withdraw", "photograph" };
+    static readonly string[] kActionCues = { "flare", "radio", "photograph", "escort", "hold", "withdraw", "photograph", "radio", "record_open" };
+    static readonly string[] kActionFx = { "Flash", "Order", "Flash", "Order", "Order", null, "Impact", "Order", null };
     public string[] actionFlavor;   // serialized; wired by CombatUISetup (occupation-power voice)
 
     public void OnAction(int index)
@@ -184,7 +219,9 @@ public class QueueCombatUI : MonoBehaviour
             kitStrip.text = actionFlavor[index];
         if (actionFlavor != null && index < actionFlavor.Length)
             lastFlavor = actionFlavor[index];
-        fight.PlayerPhase(kit[index]);
+        bool acted = fight.PlayerPhase(kit[index]);
+        if (acted && index < kActionFx.Length && kActionFx[index] != null)
+            CombatFx.Play(kActionFx[index]);
         fight.EndRound();
         if (fight.State.Outcome == Outcome.Ongoing) fight.WaiterPhase();
         ShowMenuRow(rowTop);
@@ -197,14 +234,14 @@ public class QueueCombatUI : MonoBehaviour
     {
         if (fight == null) return;
         var s = fight.State;
-        if (s.Outcome == Outcome.VictimEscorted || s.Outcome == Outcome.OrderReimposed) { SfxBoss.Play("win"); return; }
+        if (s.Outcome == Outcome.VictimEscorted || s.Outcome == Outcome.OrderReimposed) { SfxBoss.Play("win"); CombatFx.Play("Order"); return; }
         if (s.Outcome == Outcome.VictimLost) { SfxBoss.Play("lose"); return; }
         if (s.Outcome != Outcome.Ongoing) return;
         switch (s.ActiveIllegalMove)
         {
-            case IllegalMove.TurnTheft: SfxBoss.Play("turn_theft"); break;
-            case IllegalMove.CounterDeletion: SfxBoss.Play("counter_delete"); break;
-            case IllegalMove.Waiting: SfxBoss.Play("waiting_lock"); break;
+            case IllegalMove.TurnTheft: SfxBoss.Play("turn_theft"); CombatFx.Play("Glitch"); break;
+            case IllegalMove.CounterDeletion: SfxBoss.Play("counter_delete"); CombatFx.Play("Glitch"); break;
+            case IllegalMove.Waiting: SfxBoss.Play("waiting_lock"); CombatFx.Play("Glitch"); break;
         }
     }
 
@@ -278,6 +315,10 @@ public class QueueCombatUI : MonoBehaviour
             "the case stays open",
             s.Knowledge.Classified ? "EXPOSURE ready — the file names the cheat"
                 : "it will not notice — finish the file",
+            !(s.Knowledge.KnowsSchedule && s.Knowledge.KnowsTheStop) ? "LOCKED — need: the archive + the stop"
+                : (s.SpokeTheDate ? "already spoken — a date lands once" : "once per fight"),
+            !(s.Player.PhotoEvidence && s.Knowledge.KnowsVictim) ? "LOCKED — need: a developed photo + the commuter"
+                : (s.ShowedHerPhoto ? "she has seen it — now it is only paper" : "her clock +2 · once"),
         };
         // outcome ends the menu conversation: back to tier-1, everything
         // read-only under the banner
@@ -292,12 +333,28 @@ public class QueueCombatUI : MonoBehaviour
             foreach (var tn in topNames)
                 if (tn != null) tn.color = s.PlayerTurnStolenThisRound ? Fog : Paper;
 
-        // the ambient kit readout tracks every state change at tier-1
-        if (rowTop != null && rowTop.activeSelf && kitStrip != null)
-            kitStrip.text = ComposeTopStrip();
+        // the two bars — pure views of engine state
+        if (holdSegments != null)
+        {
+            // full while unclassified: functionally invincible, made visible
+            int lit = s.Knowledge.Classified
+                ? Mathf.Max(0, s.OrderStreakToWin - s.OrderStreak)
+                : s.OrderStreakToWin;
+            for (int i = 0; i < holdSegments.Length; i++)
+                if (holdSegments[i] != null)
+                    holdSegments[i].color = i < lit ? Wine : new Color(0.06f, 0.05f, 0.07f, 1f);
+        }
+        if (composureCells != null)
+            for (int i = 0; i < composureCells.Length; i++)
+                if (composureCells[i] != null)
+                    composureCells[i].color = i < s.Composure ? Fog : new Color(0.06f, 0.05f, 0.07f, 1f);
+
+        // the strip tracks every state change
+        UpdateStrip();
 
         for (int i = 0; i < actionButtons.Length; i++)
         {
+            if (actionButtons[i] == null) continue;   // HOLD lives in the engine, not the menu
             actionCosts[i].text = costs[i];
             // three visually distinct tiers:
             //   locked  — knowledge/resource gate: disabled tint + steel text
@@ -320,7 +377,9 @@ public class QueueCombatUI : MonoBehaviour
                 Outcome.VictimEscorted => "SHE IS OUT OF THE QUEUE — AGED, ALIVE",
                 Outcome.OrderReimposed => "TIME HOLDS. LONG ENOUGH.",
                 Outcome.VictimLost => "FOR HER IT WAS TWENTY MINUTES. IT WAS NOT.",
-                Outcome.Withdrawn => "YOU STEP OUT. THE WAIT CONTINUES WITHOUT YOU.",
+                Outcome.Withdrawn => s.WasEjected
+                    ? "THE QUEUE STANDS YOU DOWN. IT KEEPS YOUR PLACE."
+                    : "YOU STEP OUT. THE WAIT CONTINUES WITHOUT YOU.",
                 _ => "",
             };
             if (s.Outcome == Outcome.Withdrawn && Application.isPlaying)

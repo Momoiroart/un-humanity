@@ -119,12 +119,13 @@ public static class CombatUISetup
         }
         ui.logLines = lines.ToArray();
 
-        // kit strip — the occupation-power voice, just above the action bar
-        ui.kitStrip = Label(root, "KitStrip", "", 15, Fog, TextAnchor.MiddleCenter, new Vector2(0, 122), new Vector2(1200, 24));
+        // kit strip — two lines: description/flavor over the live kit readout
+        ui.kitStrip = Label(root, "KitStrip", "", 15, Fog, TextAnchor.MiddleCenter, new Vector2(0, 118), new Vector2(1200, 42));
+        ui.kitStrip.verticalOverflow = VerticalWrapMode.Overflow;
         var ksRt = (RectTransform)ui.kitStrip.transform;
         ksRt.anchorMin = ksRt.anchorMax = new Vector2(0.5f, 0f);
         ksRt.pivot = new Vector2(0.5f, 0f);
-        ksRt.anchoredPosition = new Vector2(0, 122);
+        ksRt.anchoredPosition = new Vector2(0, 118);
 
         // ── command grammar: a familiar shell (Undertale/E33) ──
         // Tier-1 is four verbs that never move: CHECK / ACT / KIT / WITHDRAW.
@@ -144,6 +145,7 @@ public static class CombatUISetup
         var rowTop = MenuRow("Row_Top");
         var rowAct = MenuRow("Row_Act");
         var rowKit = MenuRow("Row_Kit");
+        var rowItem = MenuRow("Row_Item");
         var rowWd = MenuRow("Row_Withdraw");
 
         (RectTransform panel, Button btn) CmdButton(RectTransform rparent, string bname, string icon,
@@ -169,46 +171,78 @@ public static class CombatUISetup
             backBtns.Add(btn);
         }
 
-        // the seven engine actions: 0-5 as ever, 6 = ATTACK (Combat_System §4)
-        string[] names = { "FLARE", "RADIO CHECK-IN", "FLASH", "ESCORT", "HOLD", "WITHDRAW", "ATTACK" };
-        string[] iconSlots = { "action_flare", "action_radio", "action_photograph", "action_escort", "action_hold", "action_withdraw", "action_photograph" };
-        var btns = new Button[7]; var bNames = new Text[7]; var bCosts = new Text[7];
+        // nine engine actions: 0-5 as ever, 6 ATTACK, 7-8 the ACT talk options
+        string[] names = { "FLARE", "RADIO CHECK-IN", "FLASH", "ESCORT", "HOLD", "WITHDRAW", "ATTACK", "SPEAK THE DATE", "SHOW HER THE PHOTO" };
+        string[] iconSlots = { "action_flare", "action_radio", "action_photograph", "action_escort", "action_hold", "action_withdraw", "action_photograph", "action_radio", "clue_victim" };
+        string[] descs =
+        {
+            "Blocks its next cheat for 1 round. Costs 1 flare — a lit flare has a schedule.",
+            "Restores the round counter and blocks 1 cheat. 3-round cooldown. Dispatch expects you.",
+            "Blocks cheats 2 rounds, files the photo as evidence. 1 film. Works through [WAITING].",
+            "Walks her one step out. Only works on a clean round — order must hold to move her.",
+            "",
+            "Confirm: end the encounter. You lose nothing; she stays in the queue until you return.",
+            "Free jab. File complete: cancels its next cheat (1 round). File open: it doesn't notice.",
+            "Breaks [WAITING], blocks cheats 2 rounds. Once per fight — it can't out-wait a date.",
+            "Restores 2 of her clock. Once per fight — she remembers she was leaving. Needs a normal turn.",
+        };
+        var btns = new Button[9]; var bNames = new Text[9]; var bCosts = new Text[9];
+        void Describe(RectTransform b, string d)
+        {
+            if (string.IsNullOrEmpty(d)) return;
+            var h = b.gameObject.AddComponent<HoverDescriber>();
+            h.description = d;
+            h.ui = ui;
+        }
         void RealAction(RectTransform rparent, int idx, float x, float w = 230)
         {
-            var (_, btn) = CmdButton(rparent, $"Action_{names[idx]}", iconSlots[idx], x, w,
+            var (bp, btn) = CmdButton(rparent, $"Action_{names[idx]}", iconSlots[idx], x, w,
                 names[idx], "", out var nT, out var cT);
             UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnAction, idx);
+            Describe(bp, descs[idx]);
             btns[idx] = btn; bNames[idx] = nT; bCosts[idx] = cT;
         }
 
-        // tier-1: ATTACK is a live action; the other three open submenus
-        RealAction(rowTop, 6, -420, 260);   // ATTACK — snapshot jab / Exposure
-        string[] topTitles = { "SKILL", "PROCEDURE", "WITHDRAW" };
-        string[] topSubs = { "your craft — light and film", "what the file unlocks", "the case stays open" };
-        string[] topIcons = { "action_flare", "action_radio", "action_withdraw" };
-        float[] topX = { -140, 140, 420 };
-        int[] topHooks = { 2, 1, 3 };   // SKILL opens rowKit, PROCEDURE opens rowAct
-        var topBtns = new Button[3]; var topNames = new Text[3];
-        for (int i = 0; i < 3; i++)
+        // tier-1: five verbs, always in the same place
+        RealAction(rowTop, 6, -480);   // ATTACK — snapshot jab / Exposure
+        string[] topTitles = { "SKILL", "ITEM", "ACT", "RUN" };
+        string[] topSubs = { "your craft", "carried gear", "use the case", "leave the fight" };
+        string[] topDescs =
         {
-            var (_, btn) = CmdButton(rowTop, $"Top_{topTitles[i]}", topIcons[i], topX[i], 260,
+            "Your occupation's moves. Time is your craft — and time is what it cheats.",
+            "Carried gear, spent for real when used. What runs out stays run out.",
+            "Use the case. Evidence you collected becomes moves — some can end this without a blow.",
+            "Leave the fight. No penalty, no chase — but the case stays open and so does the wait.",
+        };
+        string[] topIcons = { "action_photograph", "action_flare", "action_radio", "action_withdraw" };
+        float[] topX = { -240, 0, 240, 480 };
+        int[] topHooks = { 2, 4, 1, 3 };   // SKILL->rowKit, ITEM->rowItem, ACT->rowAct, RUN->rowWd
+        var topBtns = new Button[4]; var topNames = new Text[4];
+        for (int i = 0; i < 4; i++)
+        {
+            var (bp, btn) = CmdButton(rowTop, $"Top_{topTitles[i]}", topIcons[i], topX[i], 230,
                 topTitles[i], topSubs[i], out var nT, out _);
             UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnTop, topHooks[i]);
+            Describe(bp, topDescs[i]);
             topBtns[i] = btn; topNames[i] = nT;
         }
         ui.topButtons = topBtns;
         ui.topNames = topNames;
 
-        // SKILL — the Photographer's inherent kit: light and film
-        RealAction(rowKit, 0, -240);   // FLARE
-        RealAction(rowKit, 2, 0);      // FLASH (engine: Photograph)
-        BackButton(rowKit, 200);
-        // PROCEDURE — the case's evidence-unlocked verbs
-        RealAction(rowAct, 1, -360);   // RADIO CHECK-IN
-        RealAction(rowAct, 3, -120);   // ESCORT
-        RealAction(rowAct, 4, 120);    // HOLD
-        BackButton(rowAct, 320);
-        // WITHDRAW — the confirm IS the submenu
+        // SKILL — the Photographer's craft (single item, centered: intentional)
+        RealAction(rowKit, 2, -120);   // FLASH (engine: Photograph)
+        BackButton(rowKit, 120);
+        // ITEM — carried gear
+        RealAction(rowItem, 0, -120);  // FLARE
+        BackButton(rowItem, 120);
+        // ACT — what the case taught you (HOLD retired from the menu:
+        // a blind ATTACK already passes the round; the engine keeps it)
+        RealAction(rowAct, 1, -345, 220);   // RADIO CHECK-IN
+        RealAction(rowAct, 3, -115, 220);   // ESCORT
+        RealAction(rowAct, 7, 115, 220);    // SPEAK THE DATE
+        RealAction(rowAct, 8, 345, 220);    // SHOW HER THE PHOTO
+        BackButton(rowAct, 525);
+        // RUN — the confirm IS the submenu
         RealAction(rowWd, 5, -120, 260);
         BackButton(rowWd, 100);
 
@@ -219,10 +253,46 @@ public static class CombatUISetup
         ui.rowTop = rowTop.gameObject;
         ui.rowAct = rowAct.gameObject;
         ui.rowKit = rowKit.gameObject;
+        ui.rowItem = rowItem.gameObject;
         ui.rowWithdraw = rowWd.gameObject;
         rowAct.gameObject.SetActive(false);
         rowKit.gameObject.SetActive(false);
+        rowItem.gameObject.SetActive(false);
         rowWd.gameObject.SetActive(false);
+
+        // ── the two bars: pure views of engine state ──
+        // ITS HOLD — under the queue strip, wine segments that drain as
+        // order is sustained (and never move while unclassified)
+        var holdCap = Label(root, "HoldCap", "ITS HOLD · ORDER DRAINS", 13, Fog,
+            TextAnchor.MiddleCenter, new Vector2(0, -236), new Vector2(400, 18), anchorTop: true);
+        var holdSegs = new List<Image>();
+        for (int i = 0; i < 3; i++)
+        {
+            var seg = Panel(root, $"Hold{i}", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Color32(0x5E, 0x20, 0x36, 0xFF));
+            seg.sizeDelta = new Vector2(64, 12);
+            seg.anchoredPosition = new Vector2(-72 + i * 72, -256);
+            Border(seg);
+            holdSegs.Add(seg.GetComponent<Image>());
+        }
+        ui.holdSegments = holdSegs.ToArray();
+
+        // COMPOSURE — bottom-right above the bar; 10 fog cells
+        var compCap = Label(root, "CompCap", "COMPOSURE · 0 = EJECTED", 13, Fog,
+            TextAnchor.MiddleRight, new Vector2(-16, 178), new Vector2(300, 16), pivotRight: true);
+        var ccRt = compCap.rectTransform;
+        ccRt.anchorMin = ccRt.anchorMax = new Vector2(1f, 0f);
+        ccRt.pivot = new Vector2(1f, 0f);
+        ccRt.anchoredPosition = new Vector2(-16, 176);
+        var compCells = new List<Image>();
+        for (int i = 0; i < 10; i++)
+        {
+            var c = Panel(root, $"Comp{i}", new Vector2(1f, 0f), new Vector2(1f, 0f), Fog);
+            c.sizeDelta = new Vector2(18, 10);
+            c.anchoredPosition = new Vector2(-226 + i * 22, 160);
+            compCells.Add(c.GetComponent<Image>());
+        }
+        ui.composureCells = compCells.ToArray();
 
         // occupation-power voice: every action names its REAL cost —
         // paying costs is what makes us not-them (GDD §6, v0.4)
@@ -235,12 +305,15 @@ public static class CombatUISetup
             "Costs your time — the one thing it farms. Spend it knowingly.",
             "Costs the case, not you. Stopping your own wait is always legal.",
             "A jab through the frame. Modest, human — with a classified file, it EXPOSES the cheat.",
+            "A date is a schedule. It cannot out-wait a schedule.",
+            "A photo proves a moment happened. She remembers hers.",
         };
         ui.menuHints = new[]
         {
-            "Attack, skill, procedure — or stop waiting. Your craft is Time. So is its cheat.",
-            "PROCEDURE — what the file unlocks. Radio, escort, hold: each puts time back in order.",
-            "SKILL — the photographer's craft: light and film. Real costs, real power.",
+            "Attack, skill, item, act — or run. The five moves a human has. It has one.",
+            "ACT — use what the case taught you. Evidence unlocks these; some can end a fight outright.",
+            "SKILL — your craft. FLASH blocks its cheats for 2 rounds and files the photo as evidence.",
+            "ITEM — carried and spent for real. A FLARE buys 1 round where nothing bends.",
         };
 
         // ── outcome banner ──

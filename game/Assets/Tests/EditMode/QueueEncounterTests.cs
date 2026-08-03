@@ -272,6 +272,97 @@ namespace UnHumanity.Combat.Tests
                 "every player action names a real cost — the cost panel is never empty on our side");
         }
 
+        // ── composure + ejection (the player bar) ───────────────────────
+        [Test]
+        public void PassiveDefaultFight_EndsVictimLost_NeverEjected()
+        {
+            // the canary: ties between her clock and your composure must
+            // go to the loss that matters — the scripted VictimLost beat
+            var f = NewFight();   // clock 10, knowledge All
+            for (int i = 0; i < 30 && f.State.Outcome == Outcome.Ongoing; i++)
+                f.RunRound(new HoldAction());
+            Assert.AreEqual(Outcome.VictimLost, f.State.Outcome);
+            Assert.IsFalse(f.State.WasEjected, "a passive default fight ends on HER clock, not yours");
+        }
+
+        [Test]
+        public void SuppressedRounds_CostNoComposure()
+        {
+            var f = NewFight();
+            f.RunRound(new HoldAction());                     // r1 theft lands (-1)
+            f.WaiterPhase();                                  // r2 deletion lands (-1)
+            int before = f.State.Composure;
+            f.PlayerPhase(new FlareAction());
+            f.EndRound();
+            f.WaiterPhase();                                  // r3 suppressed — no cheat fires
+            Assert.AreEqual(before, f.State.Composure, "a cancelled cheat costs no composure");
+        }
+
+        [Test]
+        public void Ejection_AtZeroComposure_SetsWasEjected()
+        {
+            var f = new QueueEncounter(new CombatState(victimClock: 30,
+                knowledge: EncounterKnowledge.None));
+            for (int i = 0; i < 30 && f.State.Outcome == Outcome.Ongoing; i++)
+                f.RunRound(new HoldAction());
+            Assert.AreEqual(Outcome.Withdrawn, f.State.Outcome);
+            Assert.IsTrue(f.State.WasEjected, "the queue stands you down — you never die here");
+            Assert.IsTrue(f.State.Composure <= 0);
+        }
+
+        // ── ACT options from the case file ──────────────────────────────
+        [Test]
+        public void SpeakTheDate_PiercesWaiting_Suppresses2_OnceOnly()
+        {
+            var f = NewFight();
+            f.RunRound(new HoldAction());                     // r1
+            f.RunRound(new HoldAction());                     // r2
+            f.WaiterPhase();                                  // r3 = [WAITING]
+            Assert.IsTrue(f.PlayerPhase(new SpeakTheDateAction()), "a spoken date pierces the wait");
+            Assert.AreEqual(IllegalMove.None, f.State.ActiveIllegalMove);
+            f.EndRound();
+            f.WaiterPhase();                                  // r4 — protected
+            Assert.AreEqual(IllegalMove.None, f.State.ActiveIllegalMove);
+            f.EndRound();
+            f.WaiterPhase();                                  // r5 — protected (2 rounds)
+            Assert.AreEqual(IllegalMove.None, f.State.ActiveIllegalMove);
+            Assert.IsFalse(new SpeakTheDateAction().CanExecute(f.State),
+                "the date only lands once — it heard you the first time");
+        }
+
+        [Test]
+        public void ShowHerPhoto_Restores2_CappedAtCtorMax_OnceOnly()
+        {
+            var f = NewFight();
+            f.State.Player.PhotoEvidence = true;              // seeded from the case file
+            f.RunRound(new HoldAction());                     // r1 — clock 9
+            f.WaiterPhase();                                  // r2 deletion — ordinary acts allowed
+            Assert.IsTrue(f.PlayerPhase(new ShowHerPhotoAction()));
+            Assert.AreEqual(10, f.State.VictimClock, "restore caps at the ctor value, never a literal");
+            Assert.IsFalse(new ShowHerPhotoAction().CanExecute(f.State),
+                "once per fight — the flag lives on state, fresh instances cannot re-arm it");
+        }
+
+        [Test]
+        public void ShowHerPhoto_CapIsCtorValue_NotTen()
+        {
+            var f = new QueueEncounter(new CombatState(victimClock: 30));
+            f.State.Player.PhotoEvidence = true;
+            f.RunRound(new HoldAction());
+            f.RunRound(new HoldAction());
+            f.RunRound(new HoldAction());                     // clock 27
+            f.WaiterPhase();                                  // r4 theft — blocked... use r5
+            f.PlayerPhase(new HoldAction());
+            f.EndRound();                                     // clock 26
+            f.WaiterPhase();                                  // r5 waiting — photo is ordinary, blocked
+            Assert.IsFalse(f.PlayerPhase(new ShowHerPhotoAction()), "[WAITING] blocks the photo");
+            Assert.IsTrue(f.PlayerPhase(new FlareAction()));  // pierce + suppress
+            f.EndRound();                                     // clock 25
+            f.WaiterPhase();                                  // r6 suppressed
+            Assert.IsTrue(f.PlayerPhase(new ShowHerPhotoAction()));
+            Assert.AreEqual(27, f.State.VictimClock, "a clock-30 fight must never be slashed to 10");
+        }
+
         // ── ATTACK + EXPOSURE (Combat_System §4/§7) ─────────────────────
         [Test]
         public void Attack_Blind_LandsButExposesNothing()

@@ -93,10 +93,20 @@ namespace UnHumanity.Combat
         public int SuppressionRounds;          // >0: order enforced, Waiter cannot cheat
 
         public int VictimClock;                // rounds until she is lost
+        public readonly int VictimClockMax;    // restore cap — always the ctor value
         public int EscortProgress;             // steps down the 6.2 m lane
         public readonly int EscortStepsNeeded;
         public int OrderStreak;                // consecutive clean rounds (counter visible, no cheat landed)
         public readonly int OrderStreakToWin;
+
+        // your ability to stand in the queue: each cheat that LANDS costs 1;
+        // at 0 the queue ejects you (Withdrawn + WasEjected — you never die)
+        public int Composure = 10;
+        public bool WasEjected;
+        // once-per-fight talk options live on state so UI restarts and
+        // fresh action instances can never re-arm them
+        public bool SpokeTheDate;
+        public bool ShowedHerPhoto;
 
         public Outcome Outcome = Outcome.Ongoing;
         public EncounterKnowledge Knowledge;
@@ -109,6 +119,7 @@ namespace UnHumanity.Combat
             Waiter = new Combatant("The Waiter", isPlayer: false);
             Victim = new Combatant("The Commuter", isPlayer: false);
             VictimClock = victimClock;
+            VictimClockMax = victimClock;
             EscortStepsNeeded = escortSteps;
             OrderStreakToWin = orderStreakToWin;
         }

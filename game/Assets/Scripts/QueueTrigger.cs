@@ -40,13 +40,16 @@ public class QueueTrigger : MonoBehaviour
         insideField = true;
         var file = caseController != null ? caseController.File : null;
         var k = new EncounterKnowledge();
+        bool hasPhoto = false;
         if (file != null)
         {
             k.KnowsVictim = file.Has(ClueId.Victim);
             k.KnowsSchedule = file.Has(ClueId.Archive);
             k.KnowsTheStop = file.Has(ClueId.TheStop);
             k.Classified = file.Verdict != Verdict.Unclassified;
+            // her record IS the developed photo — the case seeds the act
+            hasPhoto = file.Has(ClueId.Victim);
         }
-        combatUI.StartEncounter(k, photographer: false);
+        combatUI.StartEncounter(k, photographer: false, hasPhoto: hasPhoto);
     }
 }

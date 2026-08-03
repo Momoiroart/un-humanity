@@ -37,28 +37,32 @@ namespace UnHumanity.Combat
             {
                 s.SuppressionRounds--;
                 s.ActiveIllegalMove = IllegalMove.None;
-                s.Log.Add(new LogEvent(s.Waiter.Name, "waits, held inside the schedule", zeroCost: true));
+                s.Log.Add(new LogEvent(s.Waiter.Name,
+                    "waits, held inside the schedule — its cheat this round is cancelled. Composure holds", zeroCost: true));
                 return;
             }
 
             var move = ScriptFor(s.InternalRound);
             s.ActiveIllegalMove = move;
+            // a cheat LANDS exactly here — it costs you composure, once per
+            // fire (aftermath states cost streak progress, never composure)
+            s.Composure--;
             switch (move)
             {
                 case IllegalMove.TurnTheft:
                     s.PlayerTurnStolenThisRound = true;
                     s.Log.Add(new LogEvent(s.Waiter.Name,
-                        "is ahead of you in the queue. Your turn happens behind it", zeroCost: true));
+                        "is ahead of you in the queue — your turn this round is stolen; anything you pick will fail. Composure −1", zeroCost: true));
                     break;
                 case IllegalMove.CounterDeletion:
                     s.CounterVisible = false;
                     s.Log.Add(new LogEvent(s.Waiter.Name,
-                        "the turn counter is gone. The fight has always been happening", zeroCost: true));
+                        "erases the round counter — no round counts as clean until it is restored. Composure −1", zeroCost: true));
                     break;
                 case IllegalMove.Waiting:
                     s.Player.HasWaitingStatus = true;
                     s.Log.Add(new LogEvent(s.Waiter.Name,
-                        "[WAITING] — you may act after it acts. It does not act", zeroCost: true));
+                        "sets [WAITING] — you may act after it acts. It does not act. Ordinary moves will fail. Composure −1", zeroCost: true));
                     break;
             }
         }
@@ -72,12 +76,12 @@ namespace UnHumanity.Combat
 
             if (s.PlayerTurnStolenThisRound)
             {
-                s.Log.Add(new LogEvent("Queue", "your turn already happened. You were behind it"));
+                s.Log.Add(new LogEvent("Queue", "your action fails — the turn was stolen this round. The round passes anyway; act next round"));
                 return false;
             }
             if (s.Player.HasWaitingStatus && !action.PiercesWaiting)
             {
-                s.Log.Add(new LogEvent("Queue", $"[WAITING] holds — {action.Name} needs a turn that never comes"));
+                s.Log.Add(new LogEvent("Queue", $"[WAITING] blocks {action.Name} — it needs a normal turn. Use a move that forces a schedule instead"));
                 return false;
             }
             if (!action.CanExecute(s))
@@ -101,6 +105,17 @@ namespace UnHumanity.Combat
             {
                 s.Outcome = Outcome.VictimLost;
                 s.Log.Add(new LogEvent("Resolution", "for her it was twenty minutes. It was not."));
+                return;
+            }
+
+            // ejection resolves AFTER her clock — ties go to the loss that
+            // matters. You never die here; you stop being able to stand in it.
+            if (s.Composure <= 0 && s.Outcome == Outcome.Ongoing)
+            {
+                s.Outcome = Outcome.Withdrawn;
+                s.WasEjected = true;
+                s.Log.Add(new LogEvent("Queue",
+                    "composure 0 — you can no longer stand in the queue. You are outside it now; the case stays open. You do not remember walking"));
                 return;
             }
 

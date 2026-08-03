@@ -85,7 +85,7 @@ public static class NPCSetup
         {
             ("SPR_WitnessA", -6.3f, 52f, 84f, 1, 1.0f),
             ("SPR_WitnessB", 6.6f, 54f, 100f, -1, 1.3f),
-            ("SPR_Victim", -5.6f, 60f, 116f, 1, 0.8f),
+            ("SPR_WitnessA", -5.6f, 60f, 116f, 1, 0.8f),   // never the seated commuter
             ("SPR_WitnessA", 6.2f, 92f, 124f, 1, 0.9f),
             ("SPR_WitnessB", -6.6f, 88f, 120f, -1, 1.1f),
         };
@@ -108,7 +108,8 @@ public static class NPCSetup
             foreach (var old in sightRoot.transform.Cast<Transform>()
                      .Where(t => t.name.StartsWith("NPC_")).ToList())
                 Object.DestroyImmediate(old.gameObject);
-            Billboard("SPR_Victim", sightRoot.transform, new Vector3(1.2f, 0.02f, 46.6f), "NPC_Victim");
+            // seated pose: on the bench line so she reads as sitting ON it
+            Billboard("SPR_Victim", sightRoot.transform, new Vector3(1.0f, 0.02f, 46.85f), "NPC_Victim");
             Billboard("SPR_Waiter", sightRoot.transform, new Vector3(-0.5f, 0.02f, 46.3f), "NPC_TheWaiter");
         }
 
