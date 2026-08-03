@@ -303,22 +303,23 @@ public class QueueCombatUI : MonoBehaviour
         }
 
         // action bar — names, live costs, gating; locked = knowledge missing
+        // cost lines fit their buttons (~20 chars); the hover description
+        // carries the full explanation
         string[] costs =
         {
             $"1 flare · {s.Player.Flares} left",
-            !s.Knowledge.KnowsSchedule ? "LOCKED — the transit archive"
-                : (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready · 3-round cooldown"),
+            !s.Knowledge.KnowsSchedule ? "LOCKED: archive clue"
+                : (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready · 3R cooldown"),
             s.Player.HasCamera ? $"film {s.Player.FilmRemaining}" : "no camera",
-            !s.Knowledge.KnowsVictim ? "LOCKED — the commuter"
+            !s.Knowledge.KnowsVictim ? "LOCKED: her record"
                 : $"{s.EscortProgress}/{s.EscortStepsNeeded} · needs order",
             "your time",
             "the case stays open",
-            s.Knowledge.Classified ? "EXPOSURE ready — the file names the cheat"
-                : "it will not notice — finish the file",
-            !(s.Knowledge.KnowsSchedule && s.Knowledge.KnowsTheStop) ? "LOCKED — need: the archive + the stop"
-                : (s.SpokeTheDate ? "already spoken — a date lands once" : "once per fight"),
-            !(s.Player.PhotoEvidence && s.Knowledge.KnowsVictim) ? "LOCKED — need: a developed photo + the commuter"
-                : (s.ShowedHerPhoto ? "she has seen it — now it is only paper" : "her clock +2 · once"),
+            s.Knowledge.Classified ? "EXPOSURE ready" : "finish the file",
+            !(s.Knowledge.KnowsSchedule && s.Knowledge.KnowsTheStop) ? "needs archive + stop"
+                : (s.SpokeTheDate ? "spoken · once only" : "once per fight"),
+            !(s.Player.PhotoEvidence && s.Knowledge.KnowsVictim) ? "needs her record"
+                : (s.ShowedHerPhoto ? "she has seen it" : "her clock +2 · once"),
         };
         // outcome ends the menu conversation: back to tier-1, everything
         // read-only under the banner

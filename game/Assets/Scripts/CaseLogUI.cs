@@ -49,14 +49,16 @@ public class CaseLogUI : MonoBehaviour
 
     void Update()
     {
-        // combat owns the stage: case chrome yields to THE QUEUE
+        // combat owns the stage — and so does an open record or dossier:
+        // the meter and hint chips are street chrome, not panel chrome
         bool combat = QueueCombatUI.CombatActive;
-        if (sightMeterRoot != null && sightMeterRoot.activeSelf == combat) sightMeterRoot.SetActive(!combat);
-        if (hintRoot != null && hintRoot.activeSelf == combat) hintRoot.SetActive(!combat);
+        bool readingOpen = controller != null && controller.reading != null && controller.reading.IsOpen;
+        bool chromeHidden = combat || readingOpen || (panelRoot != null && panelRoot.activeSelf);
+        if (sightMeterRoot != null && sightMeterRoot.activeSelf == chromeHidden) sightMeterRoot.SetActive(!chromeHidden);
+        if (hintRoot != null && hintRoot.activeSelf == chromeHidden) hintRoot.SetActive(!chromeHidden);
         if (combat && panelRoot != null && panelRoot.activeSelf) panelRoot.SetActive(false);
 
         var kb = Keyboard.current;
-        bool readingOpen = controller != null && controller.reading != null && controller.reading.IsOpen;
         if (kb != null && kb.tabKey.wasPressedThisFrame && panelRoot != null && !combat && !readingOpen)
         {
             panelRoot.SetActive(!panelRoot.activeSelf);

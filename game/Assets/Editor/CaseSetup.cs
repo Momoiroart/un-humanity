@@ -279,9 +279,10 @@ public static class CaseSetup
         var closeKey = KeySprite(rp, "CloseKey", "key_F", 24);
         if (closeKey != null)
         {
+            // hugging the label: [F] CLOSE RECORD reads as one chip
             closeKey.anchorMin = closeKey.anchorMax = new Vector2(1f, 0f);
             closeKey.pivot = new Vector2(1f, 0f);
-            closeKey.anchoredPosition = new Vector2(-232, 12);
+            closeKey.anchoredPosition = new Vector2(-158, 12);
         }
         reading.panelRoot = rp.gameObject;
         rp.gameObject.SetActive(false);

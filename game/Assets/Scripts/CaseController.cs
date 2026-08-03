@@ -39,14 +39,12 @@ public class CaseController : MonoBehaviour
         if (node == null || File == null) return;
         int logBefore = File.Log.Count;
         bool changed = File.Collect(node.clueId, SightActive);
+        bool willOpenRecord = File.Get(node.clueId) != null && reading != null;
         if (ui != null)
         {
-            // the toast names the UNLOCK, not just the pickup — the player
-            // must always see what a clue just bought them
-            File.Catalog.TryGetValue(node.clueId, out var meta);
-            if (changed && meta != null && !string.IsNullOrEmpty(meta.Unlocks))
-                ui.Toast($"{meta.Title.ToUpperInvariant()} — {meta.Unlocks}");
-            else if (File.Log.Count > logBefore)
+            // the record itself announces the unlock; the toast only speaks
+            // when no record opens (refusals) — never over the panel
+            if (!willOpenRecord && File.Log.Count > logBefore)
                 ui.Toast(File.Log[File.Log.Count - 1]);
             ui.Refresh();
         }
