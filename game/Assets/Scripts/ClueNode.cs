@@ -15,6 +15,11 @@ public class ClueNode : MonoBehaviour
     public float radius = 2.2f;
     [HideInInspector] public bool respondsInNormalcy;   // synced from the domain catalog
 
+    public bool talks;                 // a witness — first F opens dialogue
+    [HideInInspector] public bool hasTalked;   // per-session; two nodes may
+                                               // share a ClueId, so this MUST
+                                               // live on the node, not the file
+
     void OnEnable() => All.Add(this);
     void OnDisable() => All.Remove(this);
 }

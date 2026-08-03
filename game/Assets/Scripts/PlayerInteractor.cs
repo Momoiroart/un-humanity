@@ -3,6 +3,7 @@
 
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnHumanity.Case;
 
 public class PlayerInteractor : MonoBehaviour
 {
@@ -10,10 +11,16 @@ public class PlayerInteractor : MonoBehaviour
 
     public ClueNode Current { get; private set; }
 
+    public DialogueUI dialogue;   // wired by CaseSetup
+    public StoryUI story;         // wired by CaseSetup — no examine over a card
+
     void Update()
     {
         Current = null;
-        if (QueueCombatUI.CombatActive) return;   // no examining mid-QUEUE
+        // combat, an open conversation, or a story card all own the frame
+        if (QueueCombatUI.CombatActive) return;
+        if (DialogueUI.DialogueActive) return;   // the box owns F/Esc while talking
+        if (story != null && story.Current != StoryUI.Beat.Hidden) return;
         if (caseController == null) return;
 
         // an open record captures F: close it, don't re-collect
@@ -42,6 +49,19 @@ public class PlayerInteractor : MonoBehaviour
         var pad = Gamepad.current;
         bool pressed = (kb != null && kb.fKey.wasPressedThisFrame)
                     || (pad != null && pad.buttonSouth.wasPressedThisFrame);
-        if (pressed) caseController.TryCollect(Current);
+        if (!pressed) return;
+
+        // a witness talks the FIRST time (and only in Normalcy — under Sight
+        // the seat is empty and the Sight reading is the whole content).
+        // After that, F opens the record like any other clue.
+        if (Current.talks && !Current.hasTalked && !sight && dialogue != null)
+        {
+            var convo = Current.clueId == ClueId.Witnesses && Current.name.Contains("WitnessB")
+                ? WitnessDialogue.Commuter()
+                : WitnessDialogue.OldMan();
+            dialogue.Begin(convo, Current);
+            return;
+        }
+        caseController.TryCollect(Current);
     }
 }

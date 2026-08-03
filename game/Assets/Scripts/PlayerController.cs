@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     public float gravity = 20f;
     public Transform spriteQuad;      // X-flips to face travel direction
     public SightState sightState;
+    public StoryUI story;             // wired by PlayerSetup self-heal
     public float sightBlendSpeed = 3f;
 
     public float CurrentSpeed { get; private set; }
@@ -47,6 +48,16 @@ public class PlayerController : MonoBehaviour
         if (QueueCombatUI.CombatActive)
         {
             CurrentSpeed = 0f;
+            return;
+        }
+
+        // a conversation or a story card also freezes you — you cannot walk
+        // out of a witness mid-sentence, and Sight decays to Normalcy so a
+        // held-E never flips the world under the box
+        if (DialogueUI.DialogueActive || (story != null && story.Current != StoryUI.Beat.Hidden))
+        {
+            CurrentSpeed = 0f;
+            if (sightState != null) sightState.Tick(false, Time.deltaTime);
             return;
         }
 

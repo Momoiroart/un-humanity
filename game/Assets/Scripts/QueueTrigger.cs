@@ -27,7 +27,8 @@ public class QueueTrigger : MonoBehaviour
         float d = Vector3.Distance(player.position, anchorPosition);
         bool inField = d <= engageRadius;
 
-        if (inField && sightHeld && !insideField && !combatUI.EncounterRunning)
+        if (inField && sightHeld && !insideField && !combatUI.EncounterRunning
+            && !DialogueUI.DialogueActive)   // never engage over a conversation
             Engage();
 
         // re-engage requires stepping out of the field first

@@ -116,12 +116,18 @@ public static class PlayerSetup
         // ── self-heal: rebuilding the player must never orphan the systems
         // that reference it (this exact bug killed all interactions once) ──
         var caseCtrl = Object.FindFirstObjectByType<CaseController>();
+        var story = Object.FindFirstObjectByType<StoryUI>();
+        var dlg = Object.FindFirstObjectByType<DialogueUI>();
         if (caseCtrl != null)
         {
             var inter = inst.GetComponent<PlayerInteractor>();
             if (inter == null) inter = inst.AddComponent<PlayerInteractor>();
             inter.caseController = caseCtrl;
+            inter.dialogue = dlg;
+            inter.story = story;
         }
+        var pcForStory = inst.GetComponent<PlayerController>();
+        if (pcForStory != null) pcForStory.story = story;
         var trig = Object.FindFirstObjectByType<QueueTrigger>();
         if (trig != null) trig.player = inst.transform;
         var dread = Object.FindFirstObjectByType<ProximityDread>();

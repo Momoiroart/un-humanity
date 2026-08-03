@@ -24,6 +24,9 @@ public static class AudioSetup
         "record_close", "sight_enter", "dread_sting", "combat_start",
         "flare", "radio", "photograph", "escort", "hold", "withdraw",
         "turn_theft", "counter_delete", "waiting_lock", "win", "lose",
+        // dialogue: per-speaker voice barks + the box's own cues
+        "bark_oldman", "bark_commuter", "bark_player",
+        "dialogue_advance", "dialogue_choice",
     };
     static readonly string[] kLoops = { "sight_loop", "morning_loop" };
 

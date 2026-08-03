@@ -49,7 +49,7 @@ public static class CaseSetup
         //    two prompts fight; each carries a floating diamond marker ──
         var nodesRoot = new GameObject("CASE_Nodes").transform;
         var madeNodes = new List<ClueNode>();
-        void Node(ClueId id, string label, Vector3 pos, float radius = 1.8f)
+        void Node(ClueId id, string label, Vector3 pos, float radius = 1.8f, bool talks = false)
         {
             var go = new GameObject($"Clue_{label}");
             go.transform.SetParent(nodesRoot, false);
@@ -57,6 +57,7 @@ public static class CaseSetup
             var n = go.AddComponent<ClueNode>();
             n.clueId = id;
             n.radius = radius;
+            n.talks = talks;
 
             var markGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
             markGo.name = "Marker";
@@ -80,8 +81,8 @@ public static class CaseSetup
         // points at the field's edge.
         // (the stop now manifests mid-road at the far end, ~Z 46.4; the
         // inner field is r=3.0 — all vantage nodes stay well outside it)
-        Node(ClueId.Witnesses, "06_WitnessA", new Vector3(-6.4f, 0.5f, 14f), 2.4f);
-        Node(ClueId.Witnesses, "09_WitnessB", new Vector3(6.3f, 0.5f, 24f), 2.4f);
+        Node(ClueId.Witnesses, "06_WitnessA", new Vector3(-6.4f, 0.5f, 14f), 2.4f, talks: true);
+        Node(ClueId.Witnesses, "09_WitnessB", new Vector3(6.3f, 0.5f, 24f), 2.4f, talks: true);
         Node(ClueId.Archive, "16_Archive", new Vector3(-6.8f, 0.5f, 28f), 2.0f);
         Node(ClueId.Sediment, "15_Sediment", new Vector3(-7.8f, 0.5f, 32f), 1.8f);    // strata drift down the block
         Node(ClueId.TheStop, "01_TheStop", new Vector3(5.8f, 0.5f, 37f), 2.0f);       // vantage from the north sidewalk
@@ -302,6 +303,62 @@ public static class CaseSetup
         };
         int missingEv = evidence.Count(e => e == null);
 
+        // ── the conversation box (Undertale-style, bottom of screen) ──
+        var dlg = canvasGo.AddComponent<DialogueUI>();
+        var box = PixelPanel(canvasGo.transform, "DialogueBox", VoidSolid, Steel);
+        Anchor(box, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
+        box.sizeDelta = new Vector2(1100, 168);
+        box.anchoredPosition = new Vector2(0, 40);
+        // speaker name tab, riding the top-left edge
+        var tab = PixelPanel(box, "SpeakerTab", Concrete, Steel);
+        Anchor(tab, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f));
+        tab.sizeDelta = new Vector2(280, 32);
+        tab.anchoredPosition = new Vector2(20, 14);
+        dlg.speakerTab = Label(tab, "Name", "", 16, Anomaly, TextAnchor.MiddleLeft, new Vector2(14, 0), new Vector2(250, 30));
+        dlg.body = Label(box, "Body", "", 18, Paper, TextAnchor.UpperLeft, new Vector2(28, -22), new Vector2(1040, 110));
+        dlg.body.horizontalOverflow = HorizontalWrapMode.Wrap;
+        // [F] next chip, bottom-right
+        var advChip = new GameObject("AdvanceChip", typeof(RectTransform));
+        var advRt = (RectTransform)advChip.transform;
+        advRt.SetParent(box, false);
+        advRt.anchorMin = advRt.anchorMax = new Vector2(1f, 0f);
+        advRt.pivot = new Vector2(1f, 0f);
+        advRt.anchoredPosition = new Vector2(-16, 12);
+        advRt.sizeDelta = new Vector2(140, 26);
+        var advKey = KeySprite(advRt, "K_F", "key_F", 24);
+        if (advKey != null) advKey.anchoredPosition = new Vector2(12, 13);
+        Label(advRt, "next", "next", 16, Fog, TextAnchor.MiddleLeft, new Vector2(28, 13), new Vector2(100, 24));
+        dlg.advanceChip = advChip;
+        // the two choice buttons — shown only at a branch
+        var choices = new GameObject("Choices", typeof(RectTransform));
+        var choRt = (RectTransform)choices.transform;
+        choRt.SetParent(box, false);
+        choRt.anchorMin = choRt.anchorMax = new Vector2(0.5f, 0f);
+        choRt.pivot = new Vector2(0.5f, 0f);
+        choRt.anchoredPosition = new Vector2(0, 12);
+        choRt.sizeDelta = new Vector2(1040, 44);
+        Button ChoiceBtn(string name, float x, out Text lbl)
+        {
+            var b = PixelPanel(choRt, name, Concrete, Steel);
+            Anchor(b, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
+            b.sizeDelta = new Vector2(500, 40);
+            b.anchoredPosition = new Vector2(x, 0);
+            var btn = b.gameObject.AddComponent<Button>();
+            btn.targetGraphic = b.GetComponent<Image>();
+            lbl = Label(b, "L", "", 16, Paper, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(480, 36));
+            return btn;
+        }
+        dlg.choiceA = ChoiceBtn("ChoiceA", -258, out var clA);
+        dlg.choiceB = ChoiceBtn("ChoiceB", 258, out var clB);
+        dlg.choiceALabel = clA; dlg.choiceBLabel = clB;
+        UnityEventTools.AddPersistentListener(dlg.choiceA.onClick, dlg.OnChooseA);
+        UnityEventTools.AddPersistentListener(dlg.choiceB.onClick, dlg.OnChooseB);
+        dlg.choiceRoot = choices;
+        dlg.panelRoot = box.gameObject;
+        dlg.caseController = ctrl;
+        box.gameObject.SetActive(false);
+        toastRoot.SetAsLastSibling();   // toast still wins the sibling war
+
         // ── wiring ──
         var player = GameObject.Find("Player");
         PlayerInteractor inter = null;
@@ -310,6 +367,10 @@ public static class CaseSetup
             inter = player.GetComponent<PlayerInteractor>();
             if (inter == null) inter = player.AddComponent<PlayerInteractor>();
             inter.caseController = ctrl;
+            inter.dialogue = dlg;
+            inter.story = Object.FindFirstObjectByType<StoryUI>();
+            var pc = player.GetComponent<PlayerController>();
+            if (pc != null) pc.story = inter.story;
         }
         ctrl.ui = ui;
         ctrl.reading = reading;
