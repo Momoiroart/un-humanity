@@ -126,31 +126,97 @@ public static class CombatUISetup
         ksRt.pivot = new Vector2(0.5f, 0f);
         ksRt.anchoredPosition = new Vector2(0, 122);
 
-        // ── action bar (6: the kit + withdraw) ──
-        string[] names = { "FLARE", "RADIO CHECK-IN", "PHOTOGRAPH", "ESCORT", "HOLD", "WITHDRAW" };
-        string[] iconSlots = { "action_flare", "action_radio", "action_photograph", "action_escort", "action_hold", "action_withdraw" };
-        var btns = new List<Button>(); var bNames = new List<Text>(); var bCosts = new List<Text>();
-        for (int i = 0; i < names.Length; i++)
+        // ── command grammar: a familiar shell (Undertale/E33) ──
+        // Tier-1 is four verbs that never move: CHECK / ACT / KIT / WITHDRAW.
+        // Submenus swap IN PLACE of the row; the six real actions keep
+        // their engine indices and the three-tier color law.
+        RectTransform MenuRow(string rname)
         {
-            // 230 px at 240 pitch = 1430 total — fits any window >= 1440 wide
-            // (the old 1550 clipped even the ultrawide dev window)
-            var b = Panel(root, $"Action_{names[i]}", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Concrete);
-            b.sizeDelta = new Vector2(230, 88);
-            b.anchoredPosition = new Vector2(-600 + i * 240, 66);
+            var go = new GameObject(rname, typeof(RectTransform));
+            var rt = (RectTransform)go.transform;
+            rt.SetParent(root, false);
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.sizeDelta = Vector2.zero;
+            rt.anchoredPosition = Vector2.zero;
+            return rt;
+        }
+        var rowTop = MenuRow("Row_Top");
+        var rowAct = MenuRow("Row_Act");
+        var rowKit = MenuRow("Row_Kit");
+        var rowWd = MenuRow("Row_Withdraw");
+
+        (RectTransform panel, Button btn) CmdButton(RectTransform rparent, string bname, string icon,
+            float x, float w, string title, string subtitle, out Text nameT, out Text costT)
+        {
+            var b = Panel(rparent, bname, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Concrete);
+            b.sizeDelta = new Vector2(w, 88);
+            b.anchoredPosition = new Vector2(x, 66);
             Border(b);
             var btn = b.gameObject.AddComponent<Button>();
             btn.targetGraphic = b.GetComponent<Image>();
-            int idx = i;
-            UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnAction, idx);
-            var icon = CaseSetup.IconSprite(b, "Ic", iconSlots[i], 24);
-            if (icon != null) icon.anchoredPosition = new Vector2(20, 0);
-            bNames.Add(Label(b, "N", names[i], 20, Paper, TextAnchor.UpperCenter, new Vector2(0, -12), new Vector2(220, 26)));
-            bCosts.Add(Label(b, "C", "", 14, Fog, TextAnchor.LowerCenter, new Vector2(0, 10), new Vector2(220, 22)));
-            btns.Add(btn);
+            var ic = CaseSetup.IconSprite(b, "Ic", icon, 24);
+            if (ic != null) ic.anchoredPosition = new Vector2(20, 0);
+            nameT = Label(b, "N", title, 20, Paper, TextAnchor.UpperCenter, new Vector2(0, -12), new Vector2(w - 10, 26));
+            costT = Label(b, "C", subtitle, 14, Fog, TextAnchor.LowerCenter, new Vector2(0, 10), new Vector2(w - 10, 22));
+            return (b, btn);
         }
-        ui.actionButtons = btns.ToArray();
-        ui.actionNames = bNames.ToArray();
-        ui.actionCosts = bCosts.ToArray();
+        var backBtns = new List<Button>();
+        void BackButton(RectTransform rparent, float x)
+        {
+            var (_, btn) = CmdButton(rparent, "Back", "action_withdraw", x, 120, "BACK", "", out _, out _);
+            UnityEventTools.AddPersistentListener(btn.onClick, ui.OnBack);
+            backBtns.Add(btn);
+        }
+
+        // tier-1 — CHECK's promise is printed on the button itself
+        string[] topTitles = { "CHECK", "ACT", "KIT", "WITHDRAW" };
+        string[] topSubs = { "free — does not pass the round", "protocol — trained moves", "tools — real costs", "the case stays open" };
+        string[] topIcons = { "ui_verdict", "action_escort", "action_photograph", "action_withdraw" };
+        float[] topX = { -420, -140, 140, 420 };
+        var topBtns = new Button[4]; var topNames = new Text[4];
+        for (int i = 0; i < 4; i++)
+        {
+            var (_, btn) = CmdButton(rowTop, $"Top_{topTitles[i]}", topIcons[i], topX[i], 260,
+                topTitles[i], topSubs[i], out var nT, out _);
+            UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnTop, i);
+            topBtns[i] = btn; topNames[i] = nT;
+        }
+        ui.topButtons = topBtns;
+        ui.topNames = topNames;
+
+        // submenus — the six engine actions keep indices 0-5
+        string[] names = { "FLARE", "RADIO CHECK-IN", "PHOTOGRAPH", "ESCORT", "HOLD", "WITHDRAW" };
+        string[] iconSlots = { "action_flare", "action_radio", "action_photograph", "action_escort", "action_hold", "action_withdraw" };
+        var btns = new Button[6]; var bNames = new Text[6]; var bCosts = new Text[6];
+        void RealAction(RectTransform rparent, int idx, float x, float w = 230)
+        {
+            var (_, btn) = CmdButton(rparent, $"Action_{names[idx]}", iconSlots[idx], x, w,
+                names[idx], "", out var nT, out var cT);
+            UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnAction, idx);
+            btns[idx] = btn; bNames[idx] = nT; bCosts[idx] = cT;
+        }
+        RealAction(rowAct, 1, -360);   // RADIO CHECK-IN
+        RealAction(rowAct, 3, -120);   // ESCORT
+        RealAction(rowAct, 4, 120);    // HOLD
+        BackButton(rowAct, 320);
+        RealAction(rowKit, 0, -240);   // FLARE
+        RealAction(rowKit, 2, 0);      // PHOTOGRAPH
+        BackButton(rowKit, 200);
+        RealAction(rowWd, 5, -120, 260);  // WITHDRAW (the confirm IS the submenu)
+        BackButton(rowWd, 100);
+
+        ui.actionButtons = btns;
+        ui.actionNames = bNames;
+        ui.actionCosts = bCosts;
+        ui.backButtons = backBtns.ToArray();
+        ui.rowTop = rowTop.gameObject;
+        ui.rowAct = rowAct.gameObject;
+        ui.rowKit = rowKit.gameObject;
+        ui.rowWithdraw = rowWd.gameObject;
+        rowAct.gameObject.SetActive(false);
+        rowKit.gameObject.SetActive(false);
+        rowWd.gameObject.SetActive(false);
 
         // occupation-power voice: every action names its REAL cost —
         // paying costs is what makes us not-them (GDD §6, v0.4)
@@ -163,6 +229,14 @@ public static class CombatUISetup
             "Costs your time — the one thing it farms. Spend it knowingly.",
             "Costs the case, not you. Stopping your own wait is always legal.",
         };
+        ui.menuHints = new[]
+        {
+            "Check, act, spend, or stop waiting — the four moves a human has. It has one.",
+            "Protocol. Radio, escort, hold — trained verbs. Each one puts time back in order.",
+            "Tools burn real stock — flares, film. The cost is the power: you can pay one. It can't.",
+        };
+        ui.checkWithForecast = "FORECAST LIVE — the line under its status is its next cheat. Answer with protocol; spend tools when order slips.";
+        ui.checkWithoutForecast = "It waits. That is all CHECK can read — you never studied the stop. The file is the missing weapon.";
 
         // ── outcome banner ──
         var banner = Panel(root, "Outcome", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Void_);

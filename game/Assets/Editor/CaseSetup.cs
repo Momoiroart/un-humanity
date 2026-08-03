@@ -213,11 +213,13 @@ public static class CaseSetup
         cls.sizeDelta = new Vector2(492, 180);
         cls.anchoredPosition = new Vector2(0, 88);
         Label(cls, "Cap", "CLASSIFICATION", 14, Fog, TextAnchor.UpperLeft, new Vector2(0, -2), new Vector2(300, 18));
-        ui.classifyNote = Label(cls, "Note", "", 14, Fog, TextAnchor.UpperLeft, new Vector2(0, -26), new Vector2(480, 40));
+        // three doctrine lines — the file teaches the player HOW to judge
+        ui.classifyNote = Label(cls, "Note", "", 14, Fog, TextAnchor.UpperLeft, new Vector2(0, -22), new Vector2(486, 62));
+        ui.classifyNote.horizontalOverflow = HorizontalWrapMode.Wrap;
         var btnRow = new GameObject("Buttons", typeof(RectTransform)).GetComponent<RectTransform>();
         btnRow.SetParent(cls, false);
-        btnRow.anchoredPosition = new Vector2(0, -56);   // buttons clear of the note text
-        void ClsButton(string txt, float x, bool unhumanity)
+        btnRow.anchoredPosition = new Vector2(0, -88);   // buttons clear of the doctrine
+        void ClsButton(string txt, string sub, float x, bool unhumanity)
         {
             var b = Panel(btnRow, "Btn_" + txt, Concrete);
             Anchor(b, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
@@ -228,10 +230,14 @@ public static class CaseSetup
             btn.targetGraphic = b.GetComponent<Image>();
             if (unhumanity) UnityEventTools.AddPersistentListener(btn.onClick, ui.OnClassifyUnHumanity);
             else UnityEventTools.AddPersistentListener(btn.onClick, ui.OnClassifyRemnant);
-            Label(b, "T", txt, 17, unhumanity ? Anomaly : Paper, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(225, 58));
+            // each verdict states its reading AND its consequence
+            Label(b, "T", $"{txt}\n<color=#979DA8><size=16>{sub}</size></color>", 17,
+                unhumanity ? Anomaly : Paper, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(225, 58));
         }
-        ClsButton("UN-HUMANITY", -125, true);
-        ClsButton("REMNANT", 125, false);
+        ClsButton("UN-HUMANITY", "it hunts. destroy it", -125, true);
+        ClsButton("REMNANT", "it grieves. end the wait", 125, false);
+        ui.doctrine = "Does it hunt and take — or was it never told to stop?\n" +
+                      "Both readings fit this file. The verdict is permanent — and it decides how the encounter can end.";
         ui.classifyButtons = btnRow.gameObject;
         ui.classifySection = cls.gameObject;
         ui.verdictStamp = Label(cls, "Stamp", "", 22, Anomaly, TextAnchor.LowerCenter, new Vector2(0, 8), new Vector2(480, 30));

@@ -30,6 +30,16 @@ public class QueueCombatUI : MonoBehaviour
     public GameObject engageHint;   // "T — engage" chip; hidden while fighting
     public Text kitStrip;           // occupation-power flavor above the action bar
 
+    // ── the familiar command grammar (Undertale/E33 shell) ──
+    // Tier-1 is always the same four verbs; submenus swap in place.
+    public GameObject rowTop, rowAct, rowKit, rowWithdraw;
+    public Button[] topButtons;   // CHECK / ACT / KIT / WITHDRAW openers
+    public Text[] topNames;
+    public Button[] backButtons;
+    public string[] menuHints = new string[3];   // top / act / kit (wired by setup)
+    public string checkWithForecast = "";
+    public string checkWithoutForecast = "";
+
     static readonly Color Paper = new Color32(0xE7, 0xE9, 0xEC, 0xFF);
     static readonly Color Fog = new Color32(0x97, 0x9D, 0xA8, 0xFF);
     static readonly Color Anomaly = new Color32(0xE4, 0x56, 0x8A, 0xFF);
@@ -59,6 +69,13 @@ public class QueueCombatUI : MonoBehaviour
             if (fight == null) StartEncounter(photographer: true);   // debug: full knowledge
             else StopEncounter();
         }
+        // Esc / pad-East back out of a submenu; at tier-1 they do nothing
+        // (never StopEncounter, never Withdraw)
+        var pad = Gamepad.current;
+        bool backPressed = (kb != null && kb.escapeKey.wasPressedThisFrame)
+                        || (pad != null && pad.buttonEast.wasPressedThisFrame);
+        if (CombatActive && backPressed && rowTop != null && !rowTop.activeSelf)
+            OnBack();
         // the stop only exists under Sight — combat holds the world there
         if (fight != null && sightState != null && Application.isPlaying)
             sightState.SetSight(Mathf.MoveTowards(sightState.blend, 1f, 2.5f * Time.deltaTime));
@@ -77,15 +94,73 @@ public class QueueCombatUI : MonoBehaviour
             new EscortStepAction(), new HoldAction(), new WithdrawAction(),
         };
         CombatActive = true;
+        CancelInvoke(nameof(StopEncounter));   // a withdraw-then-quick-restart must not kill the new fight
+        var openRecord = FindFirstObjectByType<ReadingUI>();
+        if (openRecord != null && openRecord.IsOpen) openRecord.Close();   // no orphaned record over the stage
         panelsRoot.SetActive(true);
         outcomeBanner.SetActive(false);
         if (engageHint != null) engageHint.SetActive(false);
-        if (kitStrip != null)
-            kitStrip.text = "your kit pays real costs — film, flares, time. That is the difference between you and it.";
+        ShowMenuRow(rowTop);
         SfxBoss.Play("combat_start");
         fight.WaiterPhase();
         RefreshAll();
         PlayWaiterCue();
+    }
+
+    // ── menu navigation ──
+    void ShowMenuRow(GameObject row)
+    {
+        if (rowTop != null) rowTop.SetActive(row == rowTop);
+        if (rowAct != null) rowAct.SetActive(row == rowAct);
+        if (rowKit != null) rowKit.SetActive(row == rowKit);
+        if (rowWithdraw != null) rowWithdraw.SetActive(row == rowWithdraw);
+        // pad/keyboard users get a live selection on every tier swap
+        if (Application.isPlaying && row != null)
+        {
+            var first = row.GetComponentInChildren<Button>();
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            if (first != null && es != null) es.SetSelectedGameObject(first.gameObject);
+        }
+        if (kitStrip == null || menuHints == null) return;
+        if (row == rowTop && menuHints.Length > 0) kitStrip.text = menuHints[0] ?? "";
+        else if (row == rowAct && menuHints.Length > 1) kitStrip.text = menuHints[1] ?? "";
+        else if (row == rowKit && menuHints.Length > 2) kitStrip.text = menuHints[2] ?? "";
+    }
+
+    /// Tier-1 hook: 0 = CHECK (free), 1 = ACT, 2 = KIT, 3 = WITHDRAW (confirm row).
+    public void OnTop(int i)
+    {
+        if (fight == null || fight.State.Outcome != Outcome.Ongoing) return;
+        SfxBoss.Play("ui_click");
+        switch (i)
+        {
+            case 0: DoCheck(); break;
+            case 1: ShowMenuRow(rowAct); break;
+            case 2: ShowMenuRow(rowKit); break;
+            case 3: ShowMenuRow(rowWithdraw); break;
+        }
+    }
+
+    public void OnBack()
+    {
+        SfxBoss.Play("ui_click");
+        ShowMenuRow(rowTop);
+    }
+
+    /// CHECK is free — it spends nothing and never passes the round.
+    /// Its unique payload: your kit's live state in one line (status and
+    /// forecast are already ambient on the Waiter panel).
+    void DoCheck()
+    {
+        var s = fight.State;
+        var fc = fight.ForecastNext();
+        string kitLine =
+            $"FLARE ×{s.Player.Flares}" +
+            (s.Player.HasCamera ? $" · FILM ×{s.Player.FilmRemaining}" : " · no camera") +
+            " · RADIO " + (s.Knowledge.KnowsSchedule ? (s.Player.RadioCooldown > 0 ? $"cooldown {s.Player.RadioCooldown}" : "ready") : "LOCKED") +
+            " · ESCORT " + (s.Knowledge.KnowsVictim ? $"{s.EscortProgress}/{s.EscortStepsNeeded}" : "LOCKED");
+        if (kitStrip != null)
+            kitStrip.text = (fc != null ? checkWithForecast : checkWithoutForecast) + "\n" + kitLine;
     }
 
     public void StopEncounter()
@@ -110,6 +185,9 @@ public class QueueCombatUI : MonoBehaviour
         fight.PlayerPhase(kit[index]);
         fight.EndRound();
         if (fight.State.Outcome == Outcome.Ongoing) fight.WaiterPhase();
+        ShowMenuRow(rowTop);
+        if (kitStrip != null && actionFlavor != null && index < actionFlavor.Length)
+            kitStrip.text = actionFlavor[index];   // keep the cost line over the menu hint
         RefreshAll();
         PlayWaiterCue();
     }
@@ -199,6 +277,18 @@ public class QueueCombatUI : MonoBehaviour
             "your time",
             "the case stays open",
         };
+        // outcome ends the menu conversation: back to tier-1, everything
+        // read-only under the banner
+        bool ongoing = s.Outcome == Outcome.Ongoing;
+        if (!ongoing && rowTop != null && !rowTop.activeSelf) ShowMenuRow(rowTop);
+        if (topButtons != null) foreach (var tb in topButtons) if (tb != null) tb.interactable = ongoing;
+        if (backButtons != null) foreach (var bb in backButtons) if (bb != null) bb.interactable = ongoing;
+        // stolen-round telegraph on tier-1: ACT/KIT/WITHDRAW dim to Fog
+        // (this round is already gone); CHECK stays paper — it is free
+        if (topNames != null && topNames.Length == 4)
+            for (int k = 1; k < 4; k++)
+                if (topNames[k] != null) topNames[k].color = s.PlayerTurnStolenThisRound ? Fog : Paper;
+
         for (int i = 0; i < actionButtons.Length; i++)
         {
             actionCosts[i].text = costs[i];

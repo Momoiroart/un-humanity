@@ -24,6 +24,7 @@ public class CaseLogUI : MonoBehaviour
     public Text classifyNote;
     public Text verdictStamp;
     public Text[] analysisLines;  // the running deduction, newest last
+    [TextArea] public string doctrine = "";   // HOW to judge — shown when the file is ready
     public Image[] sightCells;    // 10 HUD cells
     public GameObject promptRoot; // keycap chip — readable on any backdrop
     public Text promptText;
@@ -150,7 +151,9 @@ public class CaseLogUI : MonoBehaviour
             bool done = file.Verdict != Verdict.Unclassified;
             classifyButtons.SetActive(armed && !done);
             classifyNote.text = done ? "" : (armed
-                ? "the file will accept a classification. It will accept exactly one."
+                ? (string.IsNullOrEmpty(doctrine)
+                    ? "the file will accept a classification. It will accept exactly one."
+                    : doctrine)
                 : $"insufficient — {CaseFile.CluesToClassify} pieces required");
             // the Type: taxonomy tag surfaces once the file is classified
             verdictStamp.text = file.Verdict switch
