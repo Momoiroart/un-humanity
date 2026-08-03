@@ -166,7 +166,10 @@ public static class CombatUISetup
         var backBtns = new List<Button>();
         void BackButton(RectTransform rparent, float x)
         {
-            var (_, btn) = CmdButton(rparent, "Back", "action_withdraw", x, 120, "BACK", "", out _, out _);
+            var (bp, btn) = CmdButton(rparent, "Back", null, x, 120, "BACK", "", out _, out _);
+            // the real ESC keycap, not an arrow — the key IS the hint
+            var esc = CaseSetup.KeySprite(bp, "K_esc", "key_ESC", 24);
+            if (esc != null) esc.anchoredPosition = new Vector2(20, 0);
             UnityEventTools.AddPersistentListener(btn.onClick, ui.OnBack);
             backBtns.Add(btn);
         }
@@ -187,6 +190,7 @@ public static class CombatUISetup
             "Restores 2 of her clock. Once per fight — she remembers she was leaving. Needs a normal turn.",
         };
         var btns = new Button[9]; var bNames = new Text[9]; var bCosts = new Text[9];
+        var locks = new Image[9];
         void Describe(RectTransform b, string d)
         {
             if (string.IsNullOrEmpty(d)) return;
@@ -200,6 +204,16 @@ public static class CombatUISetup
                 names[idx], "", out var nT, out var cT);
             UnityEventTools.AddIntPersistentListener(btn.onClick, ui.OnAction, idx);
             Describe(bp, descs[idx]);
+            // padlock badge, top-right — visible only while knowledge-locked
+            var padlock = CaseSetup.IconSprite(bp, "Lock", "ui_locked", 16);
+            if (padlock != null)
+            {
+                padlock.anchorMin = padlock.anchorMax = new Vector2(1f, 1f);
+                padlock.pivot = new Vector2(1f, 1f);
+                padlock.anchoredPosition = new Vector2(-6, -6);
+                locks[idx] = padlock.GetComponent<Image>();
+                locks[idx].enabled = false;
+            }
             btns[idx] = btn; bNames[idx] = nT; bCosts[idx] = cT;
         }
 
@@ -249,6 +263,7 @@ public static class CombatUISetup
         ui.actionButtons = btns;
         ui.actionNames = bNames;
         ui.actionCosts = bCosts;
+        ui.lockIcons = locks;
         ui.backButtons = backBtns.ToArray();
         ui.rowTop = rowTop.gameObject;
         ui.rowAct = rowAct.gameObject;

@@ -31,12 +31,17 @@ public class SfxBoss : MonoBehaviour
     public static void Play(string cueName, float volumeScale = 1f)
     {
         if (I == null || I.oneShot == null || !Application.isPlaying) return;
+        // several cues may share a name (sibling takes) — pick one at
+        // random so repeated events never sound stamped
+        Cue chosen = null;
+        int seen = 0;
         foreach (var c in I.cues)
         {
             if (c == null || c.clip == null || c.name != cueName) continue;
-            I.oneShot.PlayOneShot(c.clip, c.volume * volumeScale);
-            return;
+            seen++;
+            if (Random.Range(0, seen) == 0) chosen = c;   // reservoir pick
         }
+        if (chosen != null) I.oneShot.PlayOneShot(chosen.clip, chosen.volume * volumeScale);
     }
 
     /// Crossfade the beds with the Sight blend. Called from SightState.

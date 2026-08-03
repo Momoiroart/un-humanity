@@ -76,6 +76,13 @@ public static class AudioSetup
             var clip = AssetDatabase.LoadAssetAtPath<AudioClip>($"{kDir}/SFX_{cue}.wav");
             if (clip == null) { missing.Add(cue); continue; }
             wired.Add(new SfxBoss.Cue { name = cue, clip = clip, volume = 0.7f });
+            // sibling takes register under the SAME cue name — SfxBoss
+            // picks among them at random
+            for (int v = 2; v <= 4; v++)
+            {
+                var alt = AssetDatabase.LoadAssetAtPath<AudioClip>($"{kDir}/SFX_{cue}_v{v}.wav");
+                if (alt != null) wired.Add(new SfxBoss.Cue { name = cue, clip = alt, volume = 0.7f });
+            }
         }
         boss.cues = wired.ToArray();
 

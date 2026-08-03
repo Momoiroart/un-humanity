@@ -162,6 +162,14 @@ public static class StreetBlockLayout
         // 17 · trash bins ×2 (lid open)
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(-7.4f, 18f), 0.411f, 30, "17_TrashBin_South");
         PlaceCenter(props, "SM_TrashBin_LidOpen", new Vector2(7.2f, 39f), 0.411f, -120, "17_TrashBin_North");
+        // 21 · ordinary benches — the city has NORMAL benches everywhere,
+        // so the fifty-years-aged one at the stop reads as the anomaly it is
+        PlaceCenter(props, "SM_Bench_Standard", new Vector2(-7.1f, 8f), 0.411f, 90, "21_Bench_South_a");
+        PlaceCenter(props, "SM_Bench_Standard", new Vector2(-7.1f, 22f), 0.411f, 90, "21_Bench_South_b");
+        PlaceCenter(props, "SM_Bench_Standard", new Vector2(6.9f, 12f), 0.411f, -90, "21_Bench_North_a");
+        PlaceCenter(props, "SM_Bench_Standard", new Vector2(6.9f, 44f), 0.411f, -90, "21_Bench_North_b");
+        PlaceCenter(props, "SM_Bench_Standard", new Vector2(-7.1f, 58f), 0.411f, 90, "V_Bench_Far_a");
+        PlaceCenter(props, "SM_Bench_Standard", new Vector2(6.9f, 76f), 0.411f, -90, "V_Bench_Far_b");
 
         // ── Far-vista dressing (Z 48-128, unreachable) — the street keeps
         //    its rhythm past the wall so morning reads as a living city ──

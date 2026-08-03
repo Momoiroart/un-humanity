@@ -35,6 +35,7 @@ public class QueueCombatUI : MonoBehaviour
     public GameObject rowTop, rowAct, rowKit, rowItem, rowWithdraw;   // act=ACT, kit=SKILL, item=ITEM
     public Image[] holdSegments;      // ITS HOLD — drains as order is sustained
     public Image[] composureCells;    // COMPOSURE — your ability to stand in it
+    public Image[] lockIcons;         // per-action padlock, shown when knowledge-locked
     public Button[] topButtons;   // the SKILL / PROCEDURE / WITHDRAW openers
     public Text[] topNames;
     public Button[] backButtons;
@@ -368,6 +369,9 @@ public class QueueCombatUI : MonoBehaviour
             actionButtons[i].interactable = s.Outcome == Outcome.Ongoing && !locked;
             actionNames[i].color = locked ? Steel : (denied ? Fog : Paper);
             actionCosts[i].color = locked ? Steel : Fog;
+            if (lockIcons != null && i < lockIcons.Length && lockIcons[i] != null
+                && lockIcons[i].enabled != locked)
+                lockIcons[i].enabled = locked;
         }
 
         if (s.Outcome != Outcome.Ongoing)
