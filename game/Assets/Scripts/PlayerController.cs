@@ -51,6 +51,14 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // Slice 0's prologue owns the player AND the Sight blend — freeze
+        // and do NOT tick Sight, so the scripted crack cannot be fought
+        if (PrologueSequence.Active)
+        {
+            CurrentSpeed = 0f;
+            return;
+        }
+
         // a conversation or a story card also freezes you — you cannot walk
         // out of a witness mid-sentence, and Sight decays to Normalcy so a
         // held-E never flips the world under the box

@@ -28,7 +28,8 @@ public class QueueTrigger : MonoBehaviour
         bool inField = d <= engageRadius;
 
         if (inField && sightHeld && !insideField && !combatUI.EncounterRunning
-            && !DialogueUI.DialogueActive)   // never engage over a conversation
+            && !DialogueUI.DialogueActive       // never over a conversation
+            && !PrologueSequence.Active)         // nor during Slice 0's crack
             Engage();
 
         // re-engage requires stepping out of the field first

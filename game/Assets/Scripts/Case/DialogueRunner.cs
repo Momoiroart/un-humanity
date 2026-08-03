@@ -153,4 +153,35 @@ namespace UnHumanity.Case
             return c;
         }
     }
+
+    /// SLICE 0 — the friend (human anchor). Two conversations bracket the
+    /// first involuntary Sight: a mundane greeting, then their concern once
+    /// they see the protagonist go grey. The friend never sees the anomaly.
+    /// (Text finalized from the Slice 0 writer pass.)
+    public static class FriendDialogue
+    {
+        public static Conversation Greeting()
+        {
+            var c = new Conversation();
+            c.Lead.Add(new DialogueLine("FRIEND", "There you are. You didn't answer the group chat. Again."));
+            c.Lead.Add(new DialogueLine("YOU", "Phone died. What'd I miss?"));
+            c.Lead.Add(new DialogueLine("FRIEND", "Nothing. Everything. We have that thing third period, you did the reading, right?"));
+            c.Lead.Add(new DialogueLine("YOU", "…Define 'did.'"));
+            c.Lead.Add(new DialogueLine("FRIEND", "Unbelievable. Okay, I'll walk you through it. We've got, like, ten minutes."));
+            c.Lead.Add(new DialogueLine("FRIEND", "Keep up. You always drift off right about — hey. You listening?"));
+            return c;
+        }
+
+        public static Conversation Noticed()
+        {
+            var c = new Conversation();
+            c.Lead.Add(new DialogueLine("FRIEND", "Whoa — hey. Hey. You just went grey. Like, actually grey."));
+            c.Lead.Add(new DialogueLine("YOU", "I'm — I'm fine. Did you not just — "));
+            c.Lead.Add(new DialogueLine("FRIEND", "Not just what? You stopped dead. You were staring at nothing."));
+            c.Lead.Add(new DialogueLine("YOU", "The stop. Down the road. You didn't see — no. Forget it."));
+            c.Lead.Add(new DialogueLine("FRIEND", "You're shaking. I'm not forgetting it. Sit down a second."));
+            c.Lead.Add(new DialogueLine("FRIEND", "I'm not leaving you like this. School can wait. You come first."));
+            return c;
+        }
+    }
 }

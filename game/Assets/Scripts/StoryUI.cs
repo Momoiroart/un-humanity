@@ -11,7 +11,12 @@ using UnHumanity.Combat;
 
 public class StoryUI : MonoBehaviour
 {
-    public enum Beat { Hidden, Dispatch, ResolutionChoice, Ending, Bookend }
+    public enum Beat { Hidden, Dispatch, ResolutionChoice, Ending, Bookend, PrologueCard }
+
+    // PrologueSequence sets this false in Awake so the case dispatch does
+    // not fire on top of the prequel (all Awakes run before any Start)
+    [HideInInspector] public bool autoDispatch = true;
+    System.Action onCardAdvance;
 
     [Header("wired by StorySetup")]
     public QueueCombatUI combatUI;
@@ -33,8 +38,16 @@ public class StoryUI : MonoBehaviour
 
     void Start()
     {
-        if (Application.isPlaying) ShowDispatch();
+        if (Application.isPlaying && autoDispatch) ShowDispatch();
         else if (panelRoot != null) panelRoot.SetActive(false);
+    }
+
+    /// Generic dossier card driven by an external sequencer (Slice 0's
+    /// prologue). F advances by invoking the callback, once.
+    public void ShowCard(string t, string b, string p, System.Action onAdvance)
+    {
+        onCardAdvance = onAdvance;
+        Show(Beat.PrologueCard, t, b, p);
     }
 
     void Update()
@@ -65,6 +78,11 @@ public class StoryUI : MonoBehaviour
             case Beat.Dispatch: Hide(); break;
             case Beat.Ending: ShowBookend(); break;
             case Beat.Bookend: Hide(); break;
+            case Beat.PrologueCard:
+                var cb = onCardAdvance; onCardAdvance = null;
+                Hide();   // clear the panel; the sequencer shows what's next
+                cb?.Invoke();
+                break;
         }
     }
 

@@ -54,7 +54,9 @@ public class CaseLogUI : MonoBehaviour
         bool combat = QueueCombatUI.CombatActive;
         bool dialogue = DialogueUI.DialogueActive;
         bool readingOpen = controller != null && controller.reading != null && controller.reading.IsOpen;
-        bool chromeHidden = combat || dialogue || readingOpen || (panelRoot != null && panelRoot.activeSelf);
+        // Slice 0 is the game's only purely-mundane moment — no case HUD
+        bool chromeHidden = combat || dialogue || readingOpen || PrologueSequence.Active
+                            || (panelRoot != null && panelRoot.activeSelf);
         if (sightMeterRoot != null && sightMeterRoot.activeSelf == chromeHidden) sightMeterRoot.SetActive(!chromeHidden);
         if (hintRoot != null && hintRoot.activeSelf == chromeHidden) hintRoot.SetActive(!chromeHidden);
         if ((combat || dialogue) && panelRoot != null && panelRoot.activeSelf) panelRoot.SetActive(false);

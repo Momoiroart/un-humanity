@@ -19,6 +19,7 @@ public class PlayerInteractor : MonoBehaviour
         Current = null;
         // combat, an open conversation, or a story card all own the frame
         if (QueueCombatUI.CombatActive) return;
+        if (PrologueSequence.Active) return;     // Slice 0 owns the whole stage
         if (DialogueUI.DialogueActive) return;   // the box owns F/Esc while talking
         if (story != null && story.Current != StoryUI.Beat.Hidden) return;
         if (caseController == null) return;
