@@ -88,15 +88,16 @@ public class StoryUI : MonoBehaviour
 
     public void ShowDispatch()
     {
-        Show(Beat.Dispatch, "DISPATCH — 05:47",
-            "Last week you saw something. You weren't supposed to be able to. Most people can't See. " +
-            "You can — which is why this reached you instead of a hospital. We are the Organization. There is no other name.\n\n" +
+        Show(Beat.Dispatch, "FILE UH-001 — 05:47",
+            "You already know what you are. You already know who we are. This is where we find out " +
+            "whether you're any use to us. You work it alone — no handler in your ear, no friend at " +
+            "your back. We are reading over your shoulder.\n\n" +
             "Route 9, northbound. Transit complaints: drivers skip the stop — \"someone's already waiting.\" " +
             "One commuter missing. Her phone hasn't left that stop in nine days.\n\n" +
             "Work it like this: examine what responds (F). Hold E to See what is actually there — Sight costs, watch the meter. " +
             "Evidence goes in the case file (TAB). The file must be CLASSIFIED before the thing at the end of the road can be resolved. " +
             "Understanding is the weapon. There is no other weapon.\n\n" +
-            "Go now. Be gone before the morning bus crowd notices you noticing.",
+            "Begin.",
             "F — ACCEPT THE CASE");
     }
 
@@ -160,9 +161,10 @@ public class StoryUI : MonoBehaviour
         Show(Beat.Bookend, "COVER LIFE — 00:52",
             "Your bus home is the 00:58. You wait at your own stop on an ordinary street — " +
             "homework unstarted, phone at four percent, school in six hours.\n\n" +
-            "The bench is just a bench. You checked.\n\n" +
-            "You check the schedule anyway.\n\nTwice.\n\n" +
-            "FILE UH-001 · logged.",
+            "The phone buzzes. One line, from the number you were made to save:\n" +
+            "\"Told them you'd walk through it. Get some sleep. — see you at the gate.\"\n\n" +
+            "The bench is just a bench. You checked. You check the schedule anyway. Twice.\n\n" +
+            "FILE UH-001 · CLOSED. You're one of them now.",
             "F — CLOCK OUT");
     }
 

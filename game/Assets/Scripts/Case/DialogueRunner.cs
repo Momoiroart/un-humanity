@@ -160,27 +160,53 @@ namespace UnHumanity.Case
     /// (Text finalized from the Slice 0 writer pass.)
     public static class FriendDialogue
     {
+        // the walk to school — mundane, but every line is a soft watch on
+        // reread ("stick close to me today," "humor me")
         public static Conversation Greeting()
         {
             var c = new Conversation();
-            c.Lead.Add(new DialogueLine("FRIEND", "There you are. You didn't answer the group chat. Again."));
-            c.Lead.Add(new DialogueLine("YOU", "Phone died. What'd I miss?"));
-            c.Lead.Add(new DialogueLine("FRIEND", "Nothing. Everything. We have that thing third period, you did the reading, right?"));
-            c.Lead.Add(new DialogueLine("YOU", "…Define 'did.'"));
-            c.Lead.Add(new DialogueLine("FRIEND", "Unbelievable. Okay, I'll walk you through it. We've got, like, ten minutes."));
-            c.Lead.Add(new DialogueLine("FRIEND", "Keep up. You always drift off right about — hey. You listening?"));
+            c.Lead.Add(new DialogueLine("FRIEND", "There you are. You look like death. Did you actually sleep, or...?"));
+            c.Lead.Add(new DialogueLine("YOU", "Define sleep."));
+            c.Lead.Add(new DialogueLine("FRIEND", "That bad. Weird dreams again? You always get them right before something's coming."));
+            c.Lead.Add(new DialogueLine("YOU", "There was a light. It's gone now. Bio's third period, right? I'm so dead."));
+            c.Lead.Add(new DialogueLine("FRIEND", "You're not dead, I'll cover you. Just — stick close to me today, okay? Humor me."));
+            c.Lead.Add(new DialogueLine("YOU", "You're being weird."));
+            c.Lead.Add(new DialogueLine("FRIEND", "I'm being nice. Come on — left, not right. Want to check something before the bell."));
             return c;
         }
 
-        public static Conversation Noticed()
+        // the crack, being handled — the friend is calm, procedural, a pro;
+        // you provide the Sight, they work the craft
+        public static Conversation Handled()
         {
             var c = new Conversation();
-            c.Lead.Add(new DialogueLine("FRIEND", "Whoa — hey. Hey. You just went grey. Like, actually grey."));
-            c.Lead.Add(new DialogueLine("YOU", "I'm — I'm fine. Did you not just — "));
-            c.Lead.Add(new DialogueLine("FRIEND", "Not just what? You stopped dead. You were staring at nothing."));
-            c.Lead.Add(new DialogueLine("YOU", "The stop. Down the road. You didn't see — no. Forget it."));
-            c.Lead.Add(new DialogueLine("FRIEND", "You're shaking. I'm not forgetting it. Sit down a second."));
-            c.Lead.Add(new DialogueLine("FRIEND", "I'm not leaving you like this. School can wait. You come first."));
+            c.Lead.Add(new DialogueLine("FRIEND", "Okay. Hey — look at me. Not at it, at me. You're alright. You're alright."));
+            c.Lead.Add(new DialogueLine("YOU", "You can see it too. You can actually SEE it—"));
+            c.Lead.Add(new DialogueLine("FRIEND", "Yeah. I can. Deep breath. Stay behind me and do exactly what I say."));
+            c.Lead.Add(new DialogueLine("FRIEND", "The kid on the stairs — you still see him? Point for me. Don't touch the doorframe."));
+            c.Lead.Add(new DialogueLine("YOU", "Third step. He keeps climbing, he won't stop, he can't—"));
+            c.Lead.Add(new DialogueLine("FRIEND", "Good. That's all I needed from you. Eyes on me now. This part's mine."));
+            c.Lead.Add(new DialogueLine("YOU", "How many times have you—"));
+            c.Lead.Add(new DialogueLine("FRIEND", "Later. Hold still. And whatever it says to you next — don't answer it."));
+            return c;
+        }
+
+        // the reveal — the friend is an agent, a Painter, placed near you;
+        // UH-001 will be your test
+        public static Conversation After()
+        {
+            var c = new Conversation();
+            c.Lead.Add(new DialogueLine("FRIEND", "Sit. Breathe. You did good back there — better than I did, my first time."));
+            c.Lead.Add(new DialogueLine("YOU", "Your first time. So this is— this is a thing you do. Regularly."));
+            c.Lead.Add(new DialogueLine("FRIEND", "Since I was nine. You're born able to See, or you're not. There's almost none of us."));
+            c.Lead.Add(new DialogueLine("FRIEND", "Two of us, same class, same street? That's not supposed to happen. That's the part I hid."));
+            c.Lead.Add(new DialogueLine("YOU", "Then why did you even come near me—"));
+            c.Lead.Add(new DialogueLine("FRIEND", "Because I hoped I was wrong about you. You've flinched at empty corners for weeks. I knew."));
+            c.Lead.Add(new DialogueLine("YOU", "The walking-me-home. The texts. All of it was—"));
+            c.Lead.Add(new DialogueLine("FRIEND", "Somebody has to catch you before it does. That's what I am now. That's the job."));
+            c.Lead.Add(new DialogueLine("FRIEND", "There are quiet people I answer to. They already know your name."));
+            c.Lead.Add(new DialogueLine("FRIEND", "They want one thing first — to watch you work a single case, alone. A test."));
+            c.Lead.Add(new DialogueLine("FRIEND", "If you're what I think you are, you'll walk right through it. I did."));
             return c;
         }
     }

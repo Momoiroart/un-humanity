@@ -14,15 +14,11 @@ using UnityEngine.SceneManagement;
 
 public static class PrologueScenes
 {
-    public const string Core    = "Assets/Scenes/SC_Prologue_Core.unity";
-    public const string Bedroom = "Assets/Scenes/SC_P0_Bedroom.unity";
-    public const string Walk    = "Assets/Scenes/SC_P1_Walk.unity";
-    public const string School  = "Assets/Scenes/SC_P2_School.unity";
-    public const string Street  = "Assets/Scenes/SC_02_StreetBlock.unity";
-
     // build-settings order: Core boots first, then the three locations, then
-    // the exam street. LoadScene-by-name needs every one registered.
-    static readonly string[] kAll = { Core, Bedroom, Walk, School, Street };
+    // the exam street. Paths come from the runtime PrologueScenePaths.
+    static readonly string[] kAll = {
+        PrologueScenePaths.Core, PrologueScenePaths.Bedroom, PrologueScenePaths.Walk,
+        PrologueScenePaths.School, PrologueScenePaths.Street };
 
     public static string EnsureScenes()
     {

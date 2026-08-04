@@ -1,0 +1,37 @@
+# ANM_P2_Billboard_Graffiti_A — Billboard graffiti
+# SC_P2_SCHOOL · group D
+# bounds 1.20 × 0.01 × 2.40 m · 4 tris · UV island 80 × 80 px
+# 1 unit = 1 m · pivot at floor contact, X/Z centred
+mtllib ANM_P2_Billboard_Graffiti_A.mtl
+o scribble_field
+usemtl SURF_Absence_Fog
+v -0.6000000238418579 2.4000000953674316 -0.003
+v 0.6000000238418579 2.4000000953674316 -0.003
+v -0.6000000238418579 0 -0.003
+v 0.6000000238418579 0 -0.003
+vt 0 1
+vt 1 1
+vt 0 0
+vt 1 0
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+f 1/1/1 3/3/3 2/2/2
+f 3/3/3 4/4/4 2/2/2
+o scribble_hot
+usemtl SURF_Crimson_Core
+v -0.39999998807907106 2.100000059604645 0.003
+v 0.49999998807907103 2.100000059604645 0.003
+v -0.39999998807907106 0.500000035762787 0.003
+v 0.49999998807907103 0.500000035762787 0.003
+vt 0 1
+vt 1 1
+vt 0 0
+vt 1 0
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+f 5/5/5 7/7/7 6/6/6
+f 7/7/7 8/8/8 6/6/6
