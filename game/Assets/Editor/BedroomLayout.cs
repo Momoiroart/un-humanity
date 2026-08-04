@@ -28,7 +28,7 @@ public static class BedroomLayout
         // dollhouse cutaway: the front wall + ceiling are OMITTED so the
         // authored camera (in front of the room, -Z) can see the whole space
         // — a 5 m room can't be framed from a camera sealed inside it.
-        P(room, "SM_P0_Floor_A",       new Vector3(0, 0, 0),        0);
+        P(room, "SM_P0_Floor_A",       new Vector3(0, -0.05f, 0),   0);   // slab top → Y=0 (else everything sinks 5cm)
         P(room, "SM_P0_Wall_A",        new Vector3(0, 0, 1.80f),    0);      // back (window wall)
         P(room, "SM_P0_Wall_B",        new Vector3(-2.10f, 0, 0),   90);     // left (door wall)
         P(room, "SM_P0_Wall_B",        new Vector3(2.10f, 0, 0),    90);     // right

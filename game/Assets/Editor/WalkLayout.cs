@@ -25,13 +25,25 @@ public static class WalkLayout
             Object.DestroyImmediate(g);
         var root = new GameObject("WALK").transform;
 
-        // ── road surface down the middle (4 m wide, Z 0..24) ──
+        // ── road down the middle + sidewalk filling the gap to the buildings ──
+        // road slab top → Y=0 (was floating with top at +0.05); a flush
+        // sidewalk each side spans the void between the road edge (X±2) and the
+        // building fronts (X±3.5) so nothing floats and the street reads as ONE
+        // connected surface — the kit's sidewalk/curb pieces, previously unused.
         for (int i = 0; i < 4; i++)
-            P(root, "SM_P1_Road_Asphalt_4m", new Vector3(0, 0, 3f + i * 6f), 0);
+            P(root, "SM_P1_Road_Asphalt_4m", new Vector3(0, -0.05f, 3f + i * 6f), 0);
+        for (int i = 0; i < 12; i++)
+        {
+            float z = 1f + i * 2f;                                   // Z 0..24, no gaps
+            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(-2.9f, -0.16f, z), 90);   // left  X[2.0,3.8]
+            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(2.9f, -0.16f, z), 90);    // right
+            P(root, "SM_P1_Curb_Straight_2m", new Vector3(-2.02f, -0.05f, z), 90);  // road-edge trim
+            P(root, "SM_P1_Curb_Straight_2m", new Vector3(2.02f, -0.05f, z), 90);
+        }
         P(root, "SM_P1_Crosswalk_Deck_A", new Vector3(0, 0.02f, 11f), 0);
         P(root, "PRP_P1_Manhole_A", new Vector3(0.7f, 0.03f, 7f), 0);
-        P(root, "PRP_P1_Puddle_Decal_A", new Vector3(-0.8f, 0.03f, 16f), 0);
-        P(root, "PRP_P1_Puddle_Decal_A", new Vector3(0.5f, 0.03f, 4f), 40);
+        P(root, "PRP_P1_Puddle_Decal_A", new Vector3(-0.8f, 0.02f, 16f), 0);
+        P(root, "PRP_P1_Puddle_Decal_A", new Vector3(1.3f, 0.02f, 5.2f), 40);   // off the walked path (was mid-road, read as a floating white patch)
 
         // ── facades down both sides (rotated so width runs along Z) ──
         float[] zRow = { 2.2f, 6.6f, 11f, 15.4f, 19.8f };
@@ -101,7 +113,7 @@ public static class WalkLayout
         P(root, "SM_P1_Distant_Building_Card", new Vector3(14f, 0, 26f), -30);
 
         // ── the friend, a couple of metres ahead on the path ──
-        Billboard(root, "SPR_Friend", new Vector3(-0.6f, 0.411f, 5f), "NPC_Friend");
+        Billboard(root, "SPR_Friend", new Vector3(-0.6f, 0f, 5f), "NPC_Friend");
 
         Marker(root, "Spawn", new Vector3(0f, 0.1f, 1.5f));
         Marker(root, "GateReach", new Vector3(0f, 0.1f, 21f));
@@ -181,8 +193,9 @@ public static class WalkLayout
     {
         string key; Color c; bool emiss = false; float k = 0;
         if (mesh.Contains("Road") || mesh.Contains("Manhole")) { key = "Road"; c = new Color(0.17f, 0.17f, 0.19f); }
-        else if (mesh.Contains("Crosswalk")) { key = "Crosswalk"; c = new Color(0.62f, 0.62f, 0.63f); }
-        else if (mesh.Contains("Puddle")) { key = "Puddle"; c = new Color(0.30f, 0.33f, 0.38f); emiss = true; k = 0.3f; }
+        else if (mesh.Contains("Crosswalk")) { key = "Crosswalk"; c = new Color(0.80f, 0.80f, 0.82f); }
+        else if (mesh.Contains("Sidewalk") || mesh.Contains("Curb")) { key = "Walk"; c = new Color(0.44f, 0.44f, 0.46f); }
+        else if (mesh.Contains("Puddle")) { key = "Puddle"; c = new Color(0.22f, 0.25f, 0.30f); emiss = true; k = 0.10f; }   // dark wet sheen, not a glowing slab
         else if (mesh.Contains("Roof")) { key = "Roof"; c = new Color(0.26f, 0.25f, 0.30f); }
         else if (mesh.Contains("House_Wall"))
         {

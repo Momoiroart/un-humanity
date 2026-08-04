@@ -33,7 +33,7 @@ public static class SchoolLayout
         // ── shell: floor / ceiling / walls, tiled 2 m along Z (rotY 90) ──
         foreach (var z in Cells)
         {
-            P(root, "SM_P2_Hallway_Floor_2m", new Vector3(0, 0, z), 90);
+            P(root, "SM_P2_Hallway_Floor_2m", new Vector3(0, -0.11f, z), 90);   // slab top → Y=0
             P(root, "SM_P2_Hallway_Ceiling_2m", new Vector3(0, 3.10f, z), 90);
             P(root, "SM_P2_Hallway_Wall_2m", new Vector3(-WallX, 0, z), 90);
             P(root, "SM_P2_Hallway_Wall_2m", new Vector3(WallX, 0, z), 90);
@@ -65,6 +65,19 @@ public static class SchoolLayout
         // ── ceiling / floor dressing ──
         foreach (var z in new[] { 2f, 5f, 7f })
             P(root, "SM_P2_Service_Light_A", new Vector3(0, 2.95f, z), 0);
+        // real lights so the corridor has form/shading (it was flat ambient
+        // only — the single biggest anti-flat fix). CrackLerp drains these too.
+        foreach (var z in new[] { 2f, 5f, 7f })
+        {
+            var lg = new GameObject($"HallLight_{z}"); lg.transform.SetParent(root, false);
+            lg.transform.localPosition = new Vector3(0, 2.82f, z);
+            var pl = lg.AddComponent<Light>(); pl.type = LightType.Point;
+            pl.color = new Color(0.98f, 0.95f, 0.88f); pl.intensity = 1.4f; pl.range = 5.5f;
+        }
+        var keyGo = new GameObject("HallKey"); keyGo.transform.SetParent(root, false);
+        keyGo.transform.rotation = Quaternion.Euler(52f, -18f, 0f);
+        var kl = keyGo.AddComponent<Light>(); kl.type = LightType.Directional;
+        kl.color = new Color(0.85f, 0.87f, 0.95f); kl.intensity = 0.5f; kl.shadows = LightShadows.Soft;
         P(root, "SM_P2_Ceiling_Vent_A", new Vector3(0.4f, 3.06f, 4f), 0);
         P(root, "SM_P2_Pipe_Utility_A", new Vector3(-1.10f, 2.70f, 6f), 0);
         P(root, "PRP_P2_Vending_Hall_A", new Vector3(1.02f, 0, 7f), 90, true);   // far-right, clear of the crack sightline
@@ -75,9 +88,11 @@ public static class SchoolLayout
         P(root, "PRP_P2_Desk_Stack_A", new Vector3(-0.80f, 0, 4f), 90);
         P(root, "PRP_P2_Floor_Decal_Scuff_A", new Vector3(0, 0.01f, 6f), 0);
 
-        // ── the friend + spawn ──
-        Billboard(root, "SPR_Friend", new Vector3(-0.8f, 0.411f, 1.6f), "NPC_Friend");
-        Marker(root, "Spawn", new Vector3(0f, 0.1f, 1.2f));
+        // ── the friend + spawn ── placed in the open aisle (not jammed against
+        // the lockers): protagonist right-of-centre so it reads clear of the
+        // left wall; friend a step deeper in the lane, visible, not occluded
+        Billboard(root, "SPR_Friend", new Vector3(-0.4f, 0f, 3.4f), "NPC_Friend");
+        Marker(root, "Spawn", new Vector3(0.25f, 0.1f, 2.2f));
 
         // ── THE ANOMALY (built INACTIVE) — bursts from the left wall at CrackZ ──
         BuildAnomaly(root);

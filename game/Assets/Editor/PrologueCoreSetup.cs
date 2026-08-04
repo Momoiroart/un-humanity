@@ -85,6 +85,15 @@ public static class PrologueCoreSetup
         lt.type = LightType.Directional;
         lt.color = new Color(1f, 0.95f, 0.9f);
         lt.intensity = 0.9f;
+        lt.shadows = LightShadows.Soft;   // contact shadows help the cast seat
+
+        // ── global post: bloom turns the emissives (neon, windows, crack glow)
+        // into light instead of flat bright cards; tonemap + vignette seat the
+        // mood. On the persistent rig, so every prologue scene inherits it. ──
+        var volGo = new GameObject("ProloguePost");
+        volGo.transform.SetParent(rig, false);
+        var vol = volGo.AddComponent<UnityEngine.Rendering.Volume>();
+        vol.isGlobal = true; vol.priority = 1f; vol.sharedProfile = MakePostProfile();
 
         // ── the cinematic UI ──
         var canvasGo = new GameObject("PrologueUI");
@@ -151,6 +160,35 @@ public static class PrologueCoreSetup
     }
 
     static readonly Color kFriendHint = new Color32(0x9A, 0xCF, 0x93, 0xFF);
+
+    static UnityEngine.Rendering.VolumeProfile MakePostProfile()
+    {
+        const string path = "Assets/Art/Prologue/ProloguePost.asset";
+        var p = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.VolumeProfile>(path);
+        if (p == null)
+        {
+            System.IO.Directory.CreateDirectory("Assets/Art/Prologue");
+            p = ScriptableObject.CreateInstance<UnityEngine.Rendering.VolumeProfile>();
+            AssetDatabase.CreateAsset(p, path);
+        }
+        UnityEngine.Rendering.Universal.Bloom bloom;
+        if (!p.TryGet(out bloom)) bloom = p.Add<UnityEngine.Rendering.Universal.Bloom>(true);
+        bloom.active = true;
+        bloom.threshold.overrideState = true; bloom.threshold.value = 0.9f;
+        bloom.intensity.overrideState = true; bloom.intensity.value = 0.85f;
+        bloom.scatter.overrideState = true; bloom.scatter.value = 0.6f;
+        UnityEngine.Rendering.Universal.Tonemapping tone;
+        if (!p.TryGet(out tone)) tone = p.Add<UnityEngine.Rendering.Universal.Tonemapping>(true);
+        tone.active = true;
+        tone.mode.overrideState = true; tone.mode.value = UnityEngine.Rendering.Universal.TonemappingMode.Neutral;
+        UnityEngine.Rendering.Universal.Vignette vig;
+        if (!p.TryGet(out vig)) vig = p.Add<UnityEngine.Rendering.Universal.Vignette>(true);
+        vig.active = true;
+        vig.intensity.overrideState = true; vig.intensity.value = 0.28f;
+        vig.smoothness.overrideState = true; vig.smoothness.value = 0.4f;
+        EditorUtility.SetDirty(p);
+        return p;
+    }
 
     // a full-width letterbox bar pinned to the top or bottom edge
     static Image BarEl(Transform parent, string name, bool top, float height)

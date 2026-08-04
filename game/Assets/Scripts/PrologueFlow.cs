@@ -36,6 +36,8 @@ public class PrologueFlow : MonoBehaviour
 
     public static bool InputLocked { get; private set; }
     static bool started;
+    // scene lights captured on the way into the crack, so the return restores them
+    readonly System.Collections.Generic.List<(Light light, float baseI)> _drainLights = new();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetStatics() { InputLocked = false; started = false; }
@@ -327,10 +329,17 @@ public class PrologueFlow : MonoBehaviour
     // ──────────────────────── the crack ────────────────────────
     IEnumerator CrackLerp(float from, float to, float dur, GameObject anomaly)
     {
-        if (anomaly != null && to > from) anomaly.SetActive(true);
-        var key = FindInScene("RigKey");
-        var keyLight = key != null ? key.GetComponent<Light>() : null;
-        float keyNormal = 0.9f, keyDrained = 0.12f;   // kill the light so the glow rules
+        if (anomaly != null && to > from)
+        {
+            anomaly.SetActive(true);
+            // capture every light EXCEPT the crack's own glow, on the way IN
+            _drainLights.Clear();
+            foreach (var l in FindObjectsByType<Light>(FindObjectsSortMode.None))
+            {
+                if (anomaly != null && l.transform.IsChildOf(anomaly.transform)) continue;
+                _drainLights.Add((l, l.intensity));
+            }
+        }
         var normalAmb = new Color(0.52f, 0.50f, 0.52f);
         var darkAmb = new Color(0.05f, 0.02f, 0.035f);
         var normalBg = new Color(0.30f, 0.28f, 0.30f);
@@ -342,7 +351,8 @@ public class PrologueFlow : MonoBehaviour
             float k = Mathf.Lerp(from, to, Mathf.Clamp01(t / dur));
             RenderSettings.ambientLight = Color.Lerp(normalAmb, darkAmb, k);
             if (cam != null) cam.backgroundColor = Color.Lerp(normalBg, darkBg, k);
-            if (keyLight != null) keyLight.intensity = Mathf.Lerp(keyNormal, keyDrained, k);
+            foreach (var (light, baseI) in _drainLights)   // drain the world's light
+                if (light != null) light.intensity = baseI * Mathf.Lerp(1f, 0.08f, k);
             yield return null;
         }
         if (anomaly != null && to < 0.5f) anomaly.SetActive(false);

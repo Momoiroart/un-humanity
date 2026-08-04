@@ -49,6 +49,7 @@ public static class SpumCast
         else if (go.GetComponent<SpumIdle>() == null) go.AddComponent<SpumIdle>();
 
         if (go.GetComponent<SpumBillboard>() == null) go.AddComponent<SpumBillboard>();
+        if (go.GetComponent<SpumMoodTint>() == null) go.AddComponent<SpumMoodTint>();
         return go;
     }
 
@@ -65,15 +66,31 @@ public static class SpumCast
 
     static void NormaliseHeight(GameObject go)
     {
-        var rends = go.GetComponentsInChildren<Renderer>();
-        if (rends.Length == 0) return;
-        var b = rends[0].bounds;
-        for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+        if (!TryMeasure(go, out var b)) return;
         float h = b.size.y;
-        if (h > 0.01f)
+        if (h > 0.01f) go.transform.localScale *= (kTargetHeight / h);
+        // re-plant: put the lowest drawn pixel on the parent's foot plane, so
+        // the cast stands ON the floor (scaling is about the SPUM pivot, not
+        // the feet, so it drifts otherwise). Yaw-only billboard keeps it there.
+        if (TryMeasure(go, out b))
         {
-            float k = kTargetHeight / h;
-            go.transform.localScale *= k;
+            float footY = go.transform.parent != null ? go.transform.parent.position.y : 0f;
+            go.transform.position += Vector3.up * (footY - b.min.y);
         }
+    }
+
+    // world AABB of only renderers that actually draw (skip disabled / inactive /
+    // null-sprite / zero-size, which sit at the origin and pollute the bounds)
+    static bool TryMeasure(GameObject go, out Bounds b)
+    {
+        b = new Bounds(); bool any = false;
+        foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+        {
+            if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+            if (r is SpriteRenderer sr && sr.sprite == null) continue;
+            if (r.bounds.size == Vector3.zero) continue;
+            if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
+        }
+        return any;
     }
 }
