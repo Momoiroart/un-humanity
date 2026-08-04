@@ -340,9 +340,9 @@ public class PrologueFlow : MonoBehaviour
                 _drainLights.Add((l, l.intensity));
             }
         }
-        var normalAmb = new Color(0.52f, 0.50f, 0.52f);
+        var normalAmb = new Color(0.34f, 0.33f, 0.37f);   // matches SchoolLayout RoomMood (moodier HD-2D corridor)
         var darkAmb = new Color(0.05f, 0.02f, 0.035f);
-        var normalBg = new Color(0.30f, 0.28f, 0.30f);
+        var normalBg = new Color(0.20f, 0.19f, 0.22f);
         var darkBg = new Color(0.045f, 0.02f, 0.035f);
         float t = 0f;
         while (t < dur)

@@ -16,7 +16,7 @@ public static class SpumCast
     // session (empty = fall back to the placeholder quad billboard).
     public static class Roster
     {
-        public const string Protagonist = "SPUM_20260804184019057";   // "The Stranger"
+        public const string Protagonist = "";   // SPUM off (owner decision 2026-08-05: doesn't fit the style) — falls back to the placeholder quad until hand-drawn sprites land. Was "SPUM_20260804184019057".
         public const string Friend      = "";   // "The Contact" (green-hoodie Painter)
         public const string Witness     = "";   // civilian set
         public const string Victim      = "";   // "Mira Bennett"

@@ -1,15 +1,20 @@
-// UN-HUMANITY — SC_P1_Walk, built from the REAL street kit (Prologue Asset
-// Kit, 2026-08-04): a narrow residential street the player walks down toward
-// the school gate — road, facades both sides, overhead wires, trees, props,
-// crosswalk, gate + distant backdrop. Grey-morning mood. Keeps the friend
-// billboard + Spawn/GateReach markers the flow needs, with full boundary
-// collision (you walk the 4 m road; buildings are beyond the invisible walls).
+// UN-HUMANITY — SC_P1_Walk, rebuilt to the SC_P1_WALK master blueprint
+// (/Lattest). A narrow Japanese residential side street at ~07:20 morning,
+// walked ~85 m toward a distant school gate: continuous two-storey facades both
+// sides (gardens left, a busy shop cluster right), a wire web on procedural
+// utility poles overhead, wet reflective road, and a warm sun raking down the
+// street so the far end dissolves into haze. Follow-camera scene (no SceneCam).
+//
+// Kit = SC_P1_WALK (35 floor-pivot OBJ meshes) + procedural poles / wires /
+// vending / skyline. Cast = placeholder billboards (SPUM off). Re-runnable.
 //   unity command eval "return WalkLayout.Build();"
 
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public static class WalkLayout
 {
@@ -25,147 +30,249 @@ public static class WalkLayout
             Object.DestroyImmediate(g);
         var root = new GameObject("WALK").transform;
 
-        // ── road down the middle + sidewalk filling the gap to the buildings ──
-        // road slab top → Y=0 (was floating with top at +0.05); a flush
-        // sidewalk each side spans the void between the road edge (X±2) and the
-        // building fronts (X±3.5) so nothing floats and the street reads as ONE
-        // connected surface — the kit's sidewalk/curb pieces, previously unused.
-        for (int i = 0; i < 4; i++)
-            P(root, "SM_P1_Road_Asphalt_4m", new Vector3(0, -0.05f, 3f + i * 6f), 0);
-        for (int i = 0; i < 12; i++)
+        // ── GROUND: road down the middle (top→Y=0), raised sidewalks + curbs
+        // both sides, crosswalks, manholes + a wet-puddle field. ──
+        for (int i = 0; i < 15; i++) P(root, "SM_P1_Road_Asphalt_4m", new Vector3(0, -0.05f, 3f + i * 6f), 0);   // Z 0..90
+        for (int j = 0; j < 49; j++)
         {
-            float z = 1f + i * 2f;                                   // Z 0..24, no gaps
-            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(-2.9f, -0.16f, z), 90);   // left  X[2.0,3.8]
-            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(2.9f, -0.16f, z), 90);    // right
-            P(root, "SM_P1_Curb_Straight_2m", new Vector3(-2.02f, -0.05f, z), 90);  // road-edge trim
-            P(root, "SM_P1_Curb_Straight_2m", new Vector3(2.02f, -0.05f, z), 90);
+            float z = 0.9f + j * 1.8f;                                              // Z 0..88, no gaps
+            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(-3.0f, 0, z), 0);         // top → 0.16 (raised)
+            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(3.0f, 0, z), 0);
         }
-        P(root, "SM_P1_Crosswalk_Deck_A", new Vector3(0, 0.02f, 11f), 0);
-        P(root, "PRP_P1_Manhole_A", new Vector3(0.7f, 0.03f, 7f), 0);
-        P(root, "PRP_P1_Puddle_Decal_A", new Vector3(-0.8f, 0.02f, 16f), 0);
-        P(root, "PRP_P1_Puddle_Decal_A", new Vector3(1.3f, 0.02f, 5.2f), 40);   // off the walked path (was mid-road, read as a floating white patch)
-
-        // ── facades down both sides (rotated so width runs along Z) ──
-        float[] zRow = { 2.2f, 6.6f, 11f, 15.4f, 19.8f };
-        for (int i = 0; i < zRow.Length; i++)
+        for (int j = 0; j < 44; j++)
         {
-            float z = zRow[i];
-            // LEFT side (facing +X toward the street)
-            P(root, "SM_P1_House_Wall_A", new Vector3(-3.5f, 0, z), 90, false, i % 3);
-            P(root, "SM_P1_House_Roof_Tiled_A", new Vector3(-3.9f, 3.0f, z), 90);
-            P(root, "SM_P1_House_Window_Grid_A", new Vector3(-3.28f, 1.5f, z - 0.9f), 90);
-            P(root, "SM_P1_House_Window_Grid_A", new Vector3(-3.28f, 1.5f, z + 0.9f), 90);
-            // RIGHT side (facing -X)
-            if (i == 2)   // a storefront breaks up the row (the corner shop)
-            {
-                P(root, "SM_P1_Storefront_Hardware_A", new Vector3(3.7f, 0, z), -90);
-                P(root, "SM_P1_Storefront_Awning_A", new Vector3(3.05f, 2.4f, z), -90);
-                P(root, "PRP_P1_Signboard_Vert_A", new Vector3(2.0f, 1.1f, z - 1.6f), 0);
-            }
-            else
-            {
-                P(root, "SM_P1_House_Wall_A", new Vector3(3.5f, 0, z), -90, false, (i + 1) % 3);
-                P(root, "SM_P1_House_Roof_Tiled_A", new Vector3(3.9f, 3.0f, z), -90);
-                P(root, "SM_P1_House_Window_Grid_A", new Vector3(3.28f, 1.5f, z - 0.9f), -90);
-                P(root, "SM_P1_House_Window_Grid_A", new Vector3(3.28f, 1.5f, z + 0.9f), -90);
-            }
+            float z = 1f + j * 2f;
+            P(root, "SM_P1_Curb_Straight_2m", new Vector3(-2.05f, 0, z), 90);       // road-edge trim
+            P(root, "SM_P1_Curb_Straight_2m", new Vector3(2.05f, 0, z), 90);
         }
-        // low fence + concrete wall fragments filling the gaps
-        P(root, "SM_P1_Concrete_Wall_2m", new Vector3(-2.7f, 0, 4.4f), 90);
-        P(root, "SM_P1_Fence_Panel_2m", new Vector3(2.7f, 0, 4.4f), 90);
-        P(root, "SM_P1_Fence_Panel_2m", new Vector3(2.7f, 0, 17.6f), 90);
+        P(root, "SM_P1_Crosswalk_Deck_A", new Vector3(0, 0.02f, 40f), 0);           // WP04 crossing
+        P(root, "SM_P1_Crosswalk_Deck_A", new Vector3(0, 0.02f, 83f), 0);           // gate approach
+        foreach (float z in new[] { 7f, 30f, 60f }) P(root, "SM_P1_Manhole_A", new Vector3(0.7f, 0.03f, z), 0);
+        foreach (var p in new[] { (-0.8f, 8f, 0f), (0.9f, 20f, 30f), (-0.6f, 38f, 15f), (1.0f, 55f, 40f), (-0.9f, 70f, 0f), (0.5f, 44f, 20f) })
+            P(root, "PRP_P1_Puddle_Decal_A", new Vector3(p.Item1, 0.02f, p.Item2), p.Item3);
 
-        // ── overhead wires + poles down the right ──
-        for (int i = 0; i < 3; i++)
+        // ── FACADES (continuous both sides): left = residential + gardens,
+        // right = residential with a shop cluster mid-street. Facade width 4.04
+        // runs along Z (yaw ±90); ground storey unbroken, second storey + roofs
+        // step so the roofline isn't flat. ──
+        int panels = 20;                                                            // 20 × 4.04 ≈ 80 m
+        for (int i = 0; i < panels; i++)
         {
-            float z = 4f + i * 8f;
-            P(root, "SM_P1_Fence_Post_A", new Vector3(2.55f, 0, z), 0);        // pole trunk
-            P(root, "SM_P1_Fence_Post_A", new Vector3(2.55f, 1.33f, z), 0);    // stacked taller
-            P(root, "SM_P1_Fence_Post_A", new Vector3(2.55f, 2.66f, z), 0);
-            P(root, "SM_P1_Pole_Crossarm_A", new Vector3(2.55f, 3.9f, z), 90);
+            float z = 2.0f + i * 4.04f;
+            // LEFT (X=-4.3, road-facing +X)
+            Facade(root, -4.3f, z, +1, i);
+            // RIGHT (X=+4.3, road-facing -X) — shop cluster at i==13,14 (Z≈54-58)
+            if (i == 13 || i == 14) ShopFront(root, z, i == 13);
+            else Facade(root, 4.3f, z, -1, i);
         }
-        P(root, "SM_P1_Wire_Span_8m", new Vector3(2.55f, 3.85f, 8f), 0);
-        P(root, "SM_P1_Wire_Span_8m", new Vector3(2.55f, 3.85f, 16f), 0);
+        // near-left garden edge (fence + low concrete wall + hedges), Z 0..30
+        for (int j = 0; j < 8; j++)
+        {
+            float z = 2f + j * 3.6f;
+            P(root, "SM_P1_Fence_Panel_2m", new Vector3(-2.15f, 0.16f, z), 90);
+            if (j % 2 == 0) P(root, "SM_P1_Concrete_Wall_2m", new Vector3(-3.4f, 0, z + 1f), 90);
+        }
 
-        // ── trees + greenery ──
-        P(root, "SM_P1_Tree_Medium_A", new Vector3(-2.6f, 0, 9f), 0);
-        P(root, "SM_P1_Tree_Small_A", new Vector3(2.5f, 0, 14f), 20);
-        P(root, "SM_P1_Bush_Planter_A", new Vector3(-2.4f, 0, 13f), 0);
-        P(root, "SM_P1_Bush_Planter_A", new Vector3(-2.4f, 0, 20f), 0);
+        // ── DEPTH: procedural utility poles alternating sides + a wire web. ──
+        var poleTops = new List<Vector3>();
+        float[] pz = { 6f, 18f, 30f, 42f, 54f, 66f, 78f };
+        for (int i = 0; i < pz.Length; i++)
+        {
+            float x = (i % 2 == 0) ? -3.4f : 3.4f;
+            poleTops.Add(UtilityPole(root, x, pz[i]));
+        }
+        var wireMat = FlatMat("Wire", "#1E1F2A", false, null, 0);
+        for (int i = 0; i < poleTops.Count - 1; i++)                                // zig-zag crossing web
+        {
+            Wire(root, poleTops[i], poleTops[i + 1], wireMat, 0f);
+            Wire(root, poleTops[i] + Vector3.down * 0.35f, poleTops[i + 1] + Vector3.down * 0.55f, wireMat, 0.12f);
+        }
+        for (int i = 0; i < poleTops.Count; i++)                                    // cross-street stubs toward the facades
+            Wire(root, poleTops[i], new Vector3(-poleTops[i].x * 1.15f, poleTops[i].y - 0.3f, poleTops[i].z + 2f), wireMat, 0f);
 
-        // ── street props (kept just off the 4 m path) ──
-        P(root, "PRP_P1_Bicycle_A", new Vector3(-1.8f, 0, 6f), 15);
-        P(root, "PRP_P1_Mailbox_A", new Vector3(1.85f, 0, 3.5f), -90);
-        P(root, "PRP_P1_AC_Unit_A", new Vector3(-1.9f, 1.4f, 15f), 90);
-        P(root, "PRP_P1_Trash_Bag_A", new Vector3(1.8f, 0, 8.5f), 0);
-        P(root, "PRP_P1_Crate_Stack_A", new Vector3(1.8f, 0, 9.3f), 25);
-        P(root, "PRP_P1_Signboard_Horz_A", new Vector3(-1.85f, 1.2f, 18f), 90);
-        P(root, "PRP_P1_Planter_Pot_A", new Vector3(1.8f, 0, 18.5f), 0);
-        P(root, "PRP_P1_Traffic_Mirror_A", new Vector3(-1.9f, 0, 10.5f), 30);
-        P(root, "PRP_P1_Road_Sign_School_A", new Vector3(1.9f, 0, 20f), -20);
-        P(root, "PRP_P1_Bollard_Kit_A", new Vector3(-1.4f, 0, 10.6f), 0);
-        P(root, "PRP_P1_Bollard_Kit_A", new Vector3(1.4f, 0, 10.6f), 0);
+        // street lamps (present but OFF in the morning) between the poles
+        foreach (var l in new[] { (-3.0f, 12f), (3.0f, 24f), (-3.0f, 48f), (3.0f, 72f) })
+            StreetLamp(root, l.Item1, l.Item2);
 
-        // ── the school gate at the end + distant backdrop ──
-        P(root, "SM_P1_School_Gate_A", new Vector3(0, 0, 23f), 0);
-        P(root, "SM_P1_Distant_Building_Card", new Vector3(0, 0, 27.5f), 0);
-        P(root, "SM_P1_Distant_Building_Card", new Vector3(-14f, 0, 26f), 30);
-        P(root, "SM_P1_Distant_Building_Card", new Vector3(14f, 0, 26f), -30);
+        // ── TREES overhanging + street planting ──
+        foreach (var t in new[] { (-3.3f, 10f), (-3.5f, 34f), (3.4f, 26f), (-3.4f, 60f), (3.5f, 74f) })
+            P(root, "SM_P1_Tree_Medium_A", new Vector3(t.Item1, 0, t.Item2), 0);
+        foreach (float z in new[] { 6f, 22f, 44f, 66f, 80f })
+        {
+            P(root, "SM_P1_Bush_Planter_A", new Vector3(-2.4f, 0.16f, z), 0);
+            P(root, "SM_P1_Bush_Planter_A", new Vector3(2.4f, 0.16f, z + 3f), 0);
+        }
 
-        // ── the friend, a couple of metres ahead on the path ──
-        Billboard(root, "SPR_Friend", new Vector3(-0.6f, 0f, 5f), "NPC_Friend");
+        // ── STREET PROPS (~40, all off the 4 m walked path, |X|>1.9) ──
+        P(root, "PRP_P1_Bicycle_A", new Vector3(-1.9f, 0.16f, 6f), 15);
+        P(root, "PRP_P1_Bicycle_A", new Vector3(2.4f, 0.16f, 50f), -30);
+        P(root, "PRP_P1_Mailbox_A", new Vector3(1.9f, 0.16f, 4f), -90);
+        P(root, "PRP_P1_Traffic_Mirror_A", new Vector3(-2.2f, 0.16f, 40f), 30);
+        P(root, "PRP_P1_Road_Sign_School_A", new Vector3(2.2f, 0.16f, 41f), -20);
+        P(root, "PRP_P1_Road_Sign_School_A", new Vector3(-2.2f, 0.16f, 80f), 20);
+        foreach (float z in new[] { 55f, 57f }) P(root, "PRP_P1_Trash_Bag_A", new Vector3(2.35f, 0.16f, z), 0);
+        foreach (float z in new[] { 54f, 56f }) P(root, "PRP_P1_Crate_Stack_A", new Vector3(2.4f, 0.16f, z), 25);
+        foreach (var s in new[] { (2.0f, 55f, 0f), (2.0f, 58f, 0f), (-2.0f, 30f, 0f) }) P(root, "PRP_P1_Signboard_Vert_A", new Vector3(s.Item1, 1.1f, s.Item2), s.Item3);
+        P(root, "PRP_P1_Signboard_Horz_A", new Vector3(-2.0f, 1.3f, 18f), 90);
+        foreach (var a in new[] { (4.15f, 2.4f, 56f, -90f), (-4.15f, 2.5f, 30f, 90f), (4.15f, 2.6f, 20f, -90f), (-4.15f, 2.3f, 62f, 90f) })
+            P(root, "PRP_P1_AC_Unit_A", new Vector3(a.Item1, a.Item2, a.Item3), a.Item4);
+        foreach (var pp in new[] { (2.3f, 12f), (-2.3f, 48f), (2.3f, 70f), (-2.3f, 16f) }) P(root, "PRP_P1_Planter_Pot_A", new Vector3(pp.Item1, 0.16f, pp.Item2), 0);
+        P(root, "PRP_P1_Bollard_Kit_A", new Vector3(-1.9f, 0, 40f), 0);
+        P(root, "PRP_P1_Bollard_Kit_A", new Vector3(1.9f, 0, 40f), 0);
+        foreach (var po in new[] { (-4.14f, 1.6f, 26f, 90f), (4.14f, 1.7f, 62f, -90f) }) P(root, "PRP_P1_Poster_Card_A", new Vector3(po.Item1, po.Item2, po.Item3), po.Item4);
 
-        Marker(root, "Spawn", new Vector3(0f, 0.1f, 1.5f));
-        Marker(root, "GateReach", new Vector3(0f, 0.1f, 21f));
+        // ── FAR END: the school gate at the destination + distant cards melting
+        // into the warm haze (staggered, fog-tinted, far past the gate). ──
+        P(root, "SM_P1_School_Gate_A", new Vector3(0, 0, 85f), 0);
+        foreach (var d in new[] { (0f, 98f, 0f), (-14f, 108f, 12f), (13f, 106f, -12f), (-6f, 120f, 4f), (8f, 124f, -6f) })
+            DistantCard(root, new Vector3(d.Item1, 0, d.Item2), d.Item3);
 
-        // ── collision: ground + keep the player on the 4 m road ──
-        Bound(root, "Ground", new Vector3(0, -0.5f, 11.5f), new Vector3(5f, 1f, 27f));
-        Bound(root, "Wall_L", new Vector3(-2.1f, 1.5f, 11.5f), new Vector3(0.3f, 3f, 27f));
-        Bound(root, "Wall_R", new Vector3(2.1f, 1.5f, 11.5f), new Vector3(0.3f, 3f, 27f));
-        Bound(root, "Wall_Start", new Vector3(0, 1.5f, 0.3f), new Vector3(4.6f, 3f, 0.4f));
-        Bound(root, "Wall_End", new Vector3(0, 1.5f, 22f), new Vector3(4.6f, 3f, 0.4f));
+        // ── CAST: the friend billboard + a few BG pedestrians (protagonist is the
+        // persistent rig). ──
+        Billboard(root, "SPR_Friend", new Vector3(-0.5f, 0f, 5f), "NPC_Friend");
+        foreach (var bg in new[] { (1.4f, 26f), (-1.5f, 45f), (1.3f, 62f), (-1.2f, 72f), (1.5f, 34f) })
+            Billboard(root, "SPR_Friend", new Vector3(bg.Item1, 0f, bg.Item2), "NPC_BG");
 
-        // ── mood (thin grey morning) + beats ──
+        // markers the flow needs
+        Marker(root, "Spawn", new Vector3(0f, 0.1f, 2f));
+        Marker(root, "GateReach", new Vector3(0f, 0.1f, 83f));
+
+        // ── COLLISION: ground + keep the player on the 4 m road ──
+        Bound(root, "Ground", new Vector3(0, -0.5f, 44f), new Vector3(5f, 1f, 92f));
+        Bound(root, "Wall_L", new Vector3(-2.15f, 1.5f, 44f), new Vector3(0.3f, 3f, 92f));
+        Bound(root, "Wall_R", new Vector3(2.15f, 1.5f, 44f), new Vector3(0.3f, 3f, 92f));
+        Bound(root, "Wall_Start", new Vector3(0, 1.5f, -0.4f), new Vector3(4.6f, 3f, 0.4f));
+        Bound(root, "Wall_End", new Vector3(0, 1.5f, 86f), new Vector3(4.6f, 3f, 0.4f));
+
+        // ── LIGHTING: bright warm morning. Directional sun rakes DOWN the street
+        // from the far (+Z) end toward camera → subjects backlit, long soft
+        // shadows toward the viewer. Local cool/warm emitters. ──
+        var sunGo = new GameObject("MorningSun"); sunGo.transform.SetParent(root, false);
+        sunGo.transform.rotation = Quaternion.Euler(18f, 182f, 0f);
+        var sun = sunGo.AddComponent<Light>(); sun.type = LightType.Directional;
+        sun.color = Hx("#FFE7C4"); sun.intensity = 1.2f; sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.5f;
+
+        // ── mood (warm morning haze) + beats ──
         var mood = new GameObject("MOOD");
         var rm = mood.AddComponent<RoomMood>();
-        rm.ambient = new Color(0.55f, 0.55f, 0.58f);
-        rm.fog = new Color(0.62f, 0.63f, 0.66f); rm.fogDensity = 0.010f;
-        rm.cameraBackground = new Color(0.68f, 0.69f, 0.72f);
+        rm.ambient = Hx("#C9B7A8");                          // warm, NOT neutral grey
+        rm.fog = Hx("#EAD9C2"); rm.fogDensity = 0.010f;
+        rm.cameraBackground = Hx("#E8D4C0");                 // warm sky at the vanishing point
         var beats = mood.AddComponent<PrologueBeats>();
         beats.sceneId = "walk"; beats.nextScene = PrologueScenePaths.School;
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         int n = root.GetComponentsInChildren<MeshRenderer>().Length;
-        return $"SC_P1_Walk street built: {n} meshes + friend + gate + full boundary collision";
+        return $"SC_P1_Walk rebuilt to blueprint: {n} meshes (~85 m street) + poles/wires + shop cluster + warm sun + haze";
     }
 
-    static void P(Transform parent, string mesh, Vector3 pos, float yaw, bool solid = false, int variant = -1)
+    // ── a two-storey residential facade panel (wall + roof + windows + door) ──
+    static void Facade(Transform p, float x, float z, int face, int i)
+    {
+        float yaw = face > 0 ? 90 : -90;
+        float inX = x - face * 0.13f;                         // road-facing inner face
+        P(p, "SM_P1_House_Wall_A", new Vector3(x, 0, z), yaw);
+        if (i % 3 != 1) { P(p, "SM_P1_House_Wall_A", new Vector3(x, 3.0f, z), yaw); P(p, "SM_P1_House_Roof_Tiled_A", new Vector3(x - face * 0.3f, 6.0f, z), yaw); }
+        else P(p, "SM_P1_House_Roof_Tiled_A", new Vector3(x - face * 0.3f, 3.0f, z), yaw);
+        P(p, "SM_P1_House_Window_Grid_A", new Vector3(inX, 1.3f, z - 0.9f), yaw);
+        P(p, "SM_P1_House_Window_Grid_A", new Vector3(inX, 1.3f, z + 0.9f), yaw);
+        if (i % 3 != 1) { P(p, "SM_P1_House_Window_Grid_A", new Vector3(inX, 4.3f, z - 0.9f), yaw); P(p, "SM_P1_House_Window_Grid_A", new Vector3(inX, 4.3f, z + 0.9f), yaw); }
+        if (i % 3 == 0) P(p, "SM_P1_House_Door_A", new Vector3(inX, 0, z + 1.5f), yaw);
+    }
+
+    static void ShopFront(Transform p, float z, bool withVending)
+    {
+        P(p, "SM_P1_Storefront_Hardware_A", new Vector3(4.5f, 0, z), -90);
+        P(p, "SM_P1_Storefront_Awning_A", new Vector3(3.4f, 2.5f, z), -90);
+        P(p, "SM_P1_House_Wall_A", new Vector3(4.3f, 3.4f, z), -90);      // upper storey over the shop
+        if (withVending) Vending(p, 3.55f, z - 1.4f);
+    }
+
+    // ── procedural builds (no kit mesh fits) ──
+    static Vector3 UtilityPole(Transform parent, float x, float z)
+    {
+        var pole = GameObject.CreatePrimitive(PrimitiveType.Cube); pole.name = "UtilityPole";
+        Object.DestroyImmediate(pole.GetComponent<BoxCollider>());
+        pole.transform.SetParent(parent, false); pole.transform.localPosition = new Vector3(x, 4.0f, z); pole.transform.localScale = new Vector3(0.26f, 8.0f, 0.26f);
+        pole.GetComponent<MeshRenderer>().sharedMaterial = FlatMat("Pole", "#5A5A60", false, null, 0);
+        P(parent, "SM_P1_Pole_Crossarm_A", new Vector3(x, 6.9f, z), 0);
+        P(parent, "SM_P1_Pole_Crossarm_A", new Vector3(x, 6.1f, z), 0);
+        return new Vector3(x, 6.9f, z);
+    }
+
+    static void Wire(Transform parent, Vector3 a, Vector3 b, Material mat, float sag)
+    {
+        var src = AssetDatabase.LoadAssetAtPath<GameObject>($"{kKit}/SM_P1_Wire_Span_8m.obj");
+        if (src == null) return;
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(src); go.name = "Wire"; go.transform.SetParent(parent, false);
+        Vector3 mid = (a + b) * 0.5f + Vector3.down * sag;
+        go.transform.localPosition = mid;
+        go.transform.localRotation = Quaternion.FromToRotation(Vector3.right, (b - a).normalized);
+        go.transform.localScale = new Vector3(Vector3.Distance(a, b) / 8f, 1f, 1f);
+        foreach (var r in go.GetComponentsInChildren<MeshRenderer>()) r.sharedMaterial = mat;
+        foreach (var mc in go.GetComponentsInChildren<MeshCollider>()) Object.DestroyImmediate(mc);
+    }
+
+    static void StreetLamp(Transform parent, float x, float z)
+    {
+        var col = GameObject.CreatePrimitive(PrimitiveType.Cube); col.name = "StreetLamp";
+        Object.DestroyImmediate(col.GetComponent<BoxCollider>());
+        col.transform.SetParent(parent, false); col.transform.localPosition = new Vector3(x, 2.5f, z); col.transform.localScale = new Vector3(0.14f, 5.0f, 0.14f);
+        col.GetComponent<MeshRenderer>().sharedMaterial = FlatMat("Lamp", "#414A55", false, null, 0);
+        float armDir = x < 0 ? 1 : -1;
+        var head = GameObject.CreatePrimitive(PrimitiveType.Cube); head.name = "LampHead";
+        Object.DestroyImmediate(head.GetComponent<BoxCollider>());
+        head.transform.SetParent(parent, false); head.transform.localPosition = new Vector3(x + armDir * 0.45f, 4.9f, z); head.transform.localScale = new Vector3(0.5f, 0.22f, 0.32f);
+        head.GetComponent<MeshRenderer>().sharedMaterial = FlatMat("LampHead", "#2A2A30", false, null, 0);
+    }
+
+    static void Vending(Transform parent, float x, float z)
+    {
+        var body = GameObject.CreatePrimitive(PrimitiveType.Cube); body.name = "VendingMachine";
+        Object.DestroyImmediate(body.GetComponent<BoxCollider>());
+        body.transform.SetParent(parent, false); body.transform.localPosition = new Vector3(x, 0.965f, z); body.transform.localScale = new Vector3(0.99f, 1.93f, 0.82f);
+        body.GetComponent<MeshRenderer>().sharedMaterial = FlatMat("VendBody", "#2A2C33", false, null, 0);
+        var face = GameObject.CreatePrimitive(PrimitiveType.Quad); face.name = "VendGlow";
+        Object.DestroyImmediate(face.GetComponent<MeshCollider>());
+        face.transform.SetParent(parent, false); face.transform.localPosition = new Vector3(x - 0.42f, 1.0f, z); face.transform.localRotation = Quaternion.Euler(0, -90f, 0); face.transform.localScale = new Vector3(0.72f, 1.5f, 1f);
+        face.GetComponent<MeshRenderer>().sharedMaterial = FlatMat("VendFace", "#1A2A30", true, "#BFE3EC", 3f);
+        var lg = new GameObject("VendLight"); lg.transform.SetParent(parent, false); lg.transform.localPosition = new Vector3(x - 0.9f, 1.1f, z);
+        var l = lg.AddComponent<Light>(); l.type = LightType.Point; l.color = Hx("#BFE3EC"); l.intensity = 2.2f; l.range = 3.2f;
+    }
+
+    static void DistantCard(Transform parent, Vector3 pos, float yaw)
+    {
+        var src = AssetDatabase.LoadAssetAtPath<GameObject>($"{kKit}/SM_P1_Distant_Building_Card.obj");
+        if (src == null) return;
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(src); go.name = "DistantCard"; go.transform.SetParent(parent, false);
+        go.transform.localPosition = pos; go.transform.localRotation = Quaternion.Euler(0, yaw, 0);
+        var m = GetMat("Distant", Shader.Find("Universal Render Pipeline/Unlit"));
+        m.SetColor("_BaseColor", Hx("#C7B6A2")); EditorUtility.SetDirty(m);
+        foreach (var r in go.GetComponentsInChildren<MeshRenderer>()) r.sharedMaterial = m;
+        foreach (var mc in go.GetComponentsInChildren<MeshCollider>()) Object.DestroyImmediate(mc);
+    }
+
+    // ── kit-mesh placement ──
+    static void P(Transform parent, string mesh, Vector3 pos, float yaw)
     {
         var src = AssetDatabase.LoadAssetAtPath<GameObject>($"{kKit}/{mesh}.obj");
         if (src == null) { Debug.LogWarning($"[Walk] missing {mesh}"); return; }
         var go = (GameObject)PrefabUtility.InstantiatePrefab(src);
         go.name = mesh; go.transform.SetParent(parent, false);
         go.transform.localPosition = pos; go.transform.localRotation = Quaternion.Euler(0, yaw, 0);
-        var mat = MatFor(mesh, variant);
-        Bounds b = new Bounds(); bool first = true;
+        var mat = MatFor(mesh);
         foreach (var r in go.GetComponentsInChildren<MeshRenderer>())
         {
             var mats = new Material[r.sharedMaterials.Length];
             for (int i = 0; i < mats.Length; i++) mats[i] = mat;
             r.sharedMaterials = mats;
-            var mf = r.GetComponent<MeshFilter>();
-            if (mf != null && mf.sharedMesh != null) { if (first) { b = mf.sharedMesh.bounds; first = false; } else b.Encapsulate(mf.sharedMesh.bounds); }
         }
         foreach (var mc in go.GetComponentsInChildren<MeshCollider>()) Object.DestroyImmediate(mc);
-        if (solid && !first) { var bc = go.AddComponent<BoxCollider>(); bc.center = b.center; bc.size = b.size; }
     }
 
     static void Bound(Transform parent, string name, Vector3 pos, Vector3 size)
-    {
-        var go = new GameObject(name); go.transform.SetParent(parent, false);
-        go.transform.localPosition = pos; var c = go.AddComponent<BoxCollider>(); c.size = size;
-    }
+    { var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.localPosition = pos; go.AddComponent<BoxCollider>().size = size; }
 
     static void Marker(Transform p, string n, Vector3 pos)
     { var go = new GameObject(n); go.transform.SetParent(p, false); go.transform.localPosition = pos; }
@@ -179,7 +286,7 @@ public static class WalkLayout
         mat.SetTexture("_BaseMap", tex); mat.SetFloat("_Smoothness", 0f);
         mat.SetFloat("_AlphaClip", 1f); mat.SetFloat("_Cutoff", 0.5f); mat.EnableKeyword("_ALPHATEST_ON");
         EditorUtility.SetDirty(mat);
-        var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.position = parent.position + pos;
+        var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.localPosition = pos;
         var quad = GameObject.CreatePrimitive(PrimitiveType.Quad); quad.name = "Sprite";
         Object.DestroyImmediate(quad.GetComponent<MeshCollider>());
         quad.transform.SetParent(go.transform, false);
@@ -189,37 +296,44 @@ public static class WalkLayout
         quad.AddComponent<BillboardY>();
     }
 
-    static Material MatFor(string mesh, int variant)
-    {
-        string key; Color c; bool emiss = false; float k = 0;
-        if (mesh.Contains("Road") || mesh.Contains("Manhole")) { key = "Road"; c = new Color(0.17f, 0.17f, 0.19f); }
-        else if (mesh.Contains("Crosswalk")) { key = "Crosswalk"; c = new Color(0.80f, 0.80f, 0.82f); }
-        else if (mesh.Contains("Sidewalk") || mesh.Contains("Curb")) { key = "Walk"; c = new Color(0.44f, 0.44f, 0.46f); }
-        else if (mesh.Contains("Puddle")) { key = "Puddle"; c = new Color(0.22f, 0.25f, 0.30f); emiss = true; k = 0.10f; }   // dark wet sheen, not a glowing slab
-        else if (mesh.Contains("Roof")) { key = "Roof"; c = new Color(0.26f, 0.25f, 0.30f); }
-        else if (mesh.Contains("House_Wall"))
-        {
-            var cols = new[] { new Color(0.52f, 0.38f, 0.33f), new Color(0.56f, 0.55f, 0.52f), new Color(0.60f, 0.56f, 0.49f) };
-            key = "House" + Mathf.Max(0, variant); c = cols[Mathf.Clamp(variant, 0, 2)];
-        }
-        else if (mesh.Contains("Storefront_Awning")) { key = "Awning"; c = new Color(0.42f, 0.26f, 0.30f); }
-        else if (mesh.Contains("Storefront")) { key = "Store"; c = new Color(0.44f, 0.34f, 0.28f); }
-        else if (mesh.Contains("Window")) { key = "Window"; c = new Color(0.34f, 0.40f, 0.47f); emiss = true; k = 0.12f; }
-        else if (mesh.Contains("Gate")) { key = "Gate"; c = new Color(0.34f, 0.35f, 0.39f); }
-        else if (mesh.Contains("Distant")) { key = "Distant"; c = new Color(0.60f, 0.62f, 0.67f); }
-        else if (mesh.Contains("Tree") || mesh.Contains("Bush")) { key = "Foliage"; c = new Color(0.29f, 0.39f, 0.27f); }
-        else if (mesh.Contains("Fence") || mesh.Contains("Concrete") || mesh.Contains("Pole") || mesh.Contains("Wire")) { key = "Grey"; c = new Color(0.44f, 0.44f, 0.46f); }
-        else if (mesh.Contains("Signboard") || mesh.Contains("Sign")) { key = "Sign"; c = new Color(0.52f, 0.36f, 0.34f); }
-        else if (mesh.Contains("Mirror") || mesh.Contains("AC_") || mesh.Contains("Bollard") || mesh.Contains("Mailbox")) { key = "Metal"; c = new Color(0.45f, 0.46f, 0.49f); }
-        else if (mesh.Contains("Bicycle") || mesh.Contains("Crate") || mesh.Contains("Planter") || mesh.Contains("Trash")) { key = "Prop"; c = new Color(0.40f, 0.38f, 0.36f); }
-        else { key = "Grey2"; c = new Color(0.48f, 0.48f, 0.50f); }
+    // ── materials (desaturated albedo; light does the warming) ──
+    static Color Hx(string h) { ColorUtility.TryParseHtmlString(h, out var c); return c; }
 
+    static Material GetMat(string key, Shader shader)
+    {
         var path = $"{kMatDir}/M_P1_{key}.mat";
         var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (m == null) { System.IO.Directory.CreateDirectory(kMatDir); m = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(m, path); }
-        m.SetColor("_BaseColor", c); m.SetFloat("_Smoothness", mesh.Contains("Road") ? 0.35f : 0.05f);
-        if (emiss) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", c * k); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive; }
-        EditorUtility.SetDirty(m);
+        if (m == null) { System.IO.Directory.CreateDirectory(kMatDir); m = new Material(shader); AssetDatabase.CreateAsset(m, path); }
+        if (m.shader != shader) m.shader = shader;
         return m;
+    }
+
+    static Material FlatMat(string key, string hex, bool emiss, string ehex, float k)
+    {
+        var m = GetMat(key, Shader.Find("Universal Render Pipeline/Lit"));
+        m.SetColor("_BaseColor", Hx(hex)); m.SetFloat("_Smoothness", 0.05f); m.SetFloat("_Metallic", 0f);
+        if (emiss) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Hx(ehex) * k); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive; }
+        EditorUtility.SetDirty(m); return m;
+    }
+
+    static Material MatFor(string mesh)
+    {
+        if (mesh.Contains("Road") || mesh.Contains("Manhole")) { var m = FlatMat("AsphaltWet", "#26232A", false, null, 0); m.SetFloat("_Smoothness", 0.35f); return m; }
+        if (mesh.Contains("Crosswalk")) return FlatMat("Crosswalk", "#B7ADB0", false, null, 0);
+        if (mesh.Contains("Sidewalk") || mesh.Contains("Curb")) return FlatMat("Concrete", "#9E948C", false, null, 0);   // warm grey pavement (not mauve)
+        if (mesh.Contains("Puddle")) { var m = FlatMat("Puddle", "#2A3038", false, null, 0); m.SetFloat("_Smoothness", 0.5f); return m; }
+        if (mesh.Contains("Roof")) return FlatMat("RoofTile", "#3E3A46", false, null, 0);
+        if (mesh.Contains("House_Wall") || mesh.Contains("Concrete_Wall")) return FlatMat("Plaster", "#C9B7A2", false, null, 0);
+        if (mesh.Contains("Storefront_Awning")) return FlatMat("Awning", "#6E4A50", false, null, 0);
+        if (mesh.Contains("Storefront")) return FlatMat("Storefront", "#6E5A48", false, null, 0);
+        if (mesh.Contains("Window")) return FlatMat("WinWarm", "#3A342E", true, "#FFDCA8", 0.8f);   // warm occupied interior
+        if (mesh.Contains("Gate")) return FlatMat("Gate", "#4A4A52", false, null, 0);
+        if (mesh.Contains("Tree") || mesh.Contains("Bush")) return FlatMat("Foliage", "#5A6B3E", false, null, 0);
+        if (mesh.Contains("Fence") || mesh.Contains("Pole") || mesh.Contains("Crossarm") || mesh.Contains("Bollard")) return FlatMat("MetalFence", "#6E7A85", false, null, 0);
+        if (mesh.Contains("Signboard") || mesh.Contains("Sign")) return FlatMat("Sign", "#6E4A50", true, "#E5AFBA", 0.9f);   // warm signage, calm morning glow
+        if (mesh.Contains("AC_") || mesh.Contains("Mirror") || mesh.Contains("Mailbox")) return FlatMat("Metal", "#6E7A85", false, null, 0);
+        if (mesh.Contains("Door")) return FlatMat("DoorWood", "#5A4A3A", false, null, 0);
+        if (mesh.Contains("Poster")) return FlatMat("Poster", "#9A8A80", false, null, 0);
+        return FlatMat("Prop", "#5A544E", false, null, 0);
     }
 }
