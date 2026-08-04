@@ -33,8 +33,10 @@ public static class SpumCast
     public static GameObject Place(Transform parent, string unitCode, Vector3 localPos, string name = null)
     {
         if (string.IsNullOrEmpty(unitCode)) return null;
-        var prefab = Resources.Load<GameObject>($"SPUM/SPUM_Units/{unitCode}");
-        if (prefab == null) { Debug.LogWarning($"[SpumCast] unit '{unitCode}' not in Resources/SPUM/SPUM_Units"); return null; }
+        // SPUM saves units to Assets/SPUM/Resources/Units/<code>.prefab (v1.8.8),
+        // so Resources.Load resolves them under "Units/".
+        var prefab = Resources.Load<GameObject>($"Units/{unitCode}");
+        if (prefab == null) { Debug.LogWarning($"[SpumCast] unit '{unitCode}' not in SPUM/Resources/Units"); return null; }
 
         var go = Object.Instantiate(prefab, parent);
         go.name = name ?? unitCode;
