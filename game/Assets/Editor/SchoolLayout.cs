@@ -103,7 +103,7 @@ public static class SchoolLayout
         rm.fog = new Color(0.60f, 0.60f, 0.62f); rm.fogDensity = 0.012f;
         rm.cameraBackground = new Color(0.30f, 0.28f, 0.30f);
         var beats = mood.AddComponent<PrologueBeats>();
-        beats.sceneId = "school"; beats.nextScene = PrologueScenePaths.Street;
+        beats.sceneId = "school"; beats.nextScene = PrologueScenePaths.Handoff;
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

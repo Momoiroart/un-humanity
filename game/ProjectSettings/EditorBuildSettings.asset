@@ -18,6 +18,9 @@ EditorBuildSettings:
     path: Assets/Scenes/SC_P2_School.unity
     guid: 80abb2f94ace33840a1204f489cc87fc
   - enabled: 1
+    path: Assets/Scenes/SC_P3_Handoff.unity
+    guid: 60583ff5e80ba6d42a22716a8cb75516
+  - enabled: 1
     path: Assets/Scenes/SC_02_StreetBlock.unity
     guid: 9cff0c0ebc1b5d24ebf0e12ba9b08fda
   m_configObjects:

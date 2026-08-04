@@ -100,6 +100,7 @@ public class PrologueFlow : MonoBehaviour
             case "bedroom": yield return Bedroom(); break;
             case "walk": yield return Walk(); break;
             case "school": yield return School(); break;
+            case "handoff": yield return Handoff(); break;
         }
         ClearCaption();                  // caption sits above the fade now
         yield return FadeTo(1f, 0.7f);   // fade OUT to black
@@ -190,13 +191,15 @@ public class PrologueFlow : MonoBehaviour
         FaceToward(friend, player);
         yield return Narrate("Your friend turns to you. Not shaken. Not surprised. Watching you like someone they've waited on a long time.");
         yield return Say(FriendDialogue.After());
+        // school hands to the handoff scene (its PrologueBeats.nextScene)
+    }
 
-        // one week later — the summons
-        yield return FadeTo(1f, 0.9f);
-        ClearCaption();
-        yield return Beat(0.6f);
+    // one week later — the summons, over the evening street establisher
+    IEnumerator Handoff()
+    {
+        InputLocked = true;
         SetTime("ONE WEEK LATER  ·  05:47");
-        yield return Beat(0.4f);
+        yield return Beat(1.1f);                        // hold on the quiet dusk street
         yield return Narrate("Seven days to the day. Your phone wakes with an address and a time already bleeding out.");
         yield return Narrate("One line, from the number your friend made you save: YOUR FIRST FILE. THEY'RE WATCHING HOW YOU WORK IT.");
         yield return Narrate("No partner in the field — that's the whole point of a test. Route 9, northbound. Nothing has waited at that stop since 1974.");

@@ -18,7 +18,7 @@ public static class PrologueScenes
     // the exam street. Paths come from the runtime PrologueScenePaths.
     static readonly string[] kAll = {
         PrologueScenePaths.Core, PrologueScenePaths.Bedroom, PrologueScenePaths.Walk,
-        PrologueScenePaths.School, PrologueScenePaths.Street };
+        PrologueScenePaths.School, PrologueScenePaths.Handoff, PrologueScenePaths.Street };
 
     public static string EnsureScenes()
     {

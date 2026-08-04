@@ -8,5 +8,6 @@ public static class PrologueScenePaths
     public const string Bedroom = "Assets/Scenes/SC_P0_Bedroom.unity";
     public const string Walk    = "Assets/Scenes/SC_P1_Walk.unity";
     public const string School  = "Assets/Scenes/SC_P2_School.unity";
+    public const string Handoff = "Assets/Scenes/SC_P3_Handoff.unity";
     public const string Street  = "Assets/Scenes/SC_02_StreetBlock.unity";
 }
