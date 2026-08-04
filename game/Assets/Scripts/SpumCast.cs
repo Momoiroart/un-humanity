@@ -16,7 +16,7 @@ public static class SpumCast
     // session (empty = fall back to the placeholder quad billboard).
     public static class Roster
     {
-        public const string Protagonist = "";   // "The Stranger"
+        public const string Protagonist = "SPUM_20260804184019057";   // "The Stranger"
         public const string Friend      = "";   // "The Contact" (green-hoodie Painter)
         public const string Witness     = "";   // civilian set
         public const string Victim      = "";   // "Mira Bennett"
@@ -43,21 +43,23 @@ public static class SpumCast
         go.transform.localPosition = localPos;
         NormaliseHeight(go);
 
-        var spum = go.GetComponent<SPUM_Prefabs>();
-        if (spum != null)
-        {
-            if (!spum.allListsHaveItemsExist()) spum.PopulateAnimationLists();
-            spum.OverrideControllerInit();
-        }
+        // the baked sprite hierarchy shows immediately; the animator is primed
+        // at runtime (SpumIdle.Start), so scene-build time stays side-effect-free
+        if (Application.isPlaying) InitAndIdle(go);
+        else if (go.GetComponent<SpumIdle>() == null) go.AddComponent<SpumIdle>();
+
         if (go.GetComponent<SpumBillboard>() == null) go.AddComponent<SpumBillboard>();
         return go;
     }
 
-    /// Play a looping idle at runtime (call from Start/OnEnable in play mode).
-    public static void Idle(GameObject unit)
+    /// Prime the animator override controller and start a looping idle.
+    public static void InitAndIdle(GameObject unit)
     {
         var spum = unit != null ? unit.GetComponent<SPUM_Prefabs>() : null;
-        if (spum != null && spum.IDLE_List != null && spum.IDLE_List.Count > 0)
+        if (spum == null) return;
+        if (!spum.allListsHaveItemsExist()) spum.PopulateAnimationLists();
+        spum.OverrideControllerInit();
+        if (spum.IDLE_List != null && spum.IDLE_List.Count > 0)
             spum.PlayAnimation(PlayerState.IDLE, 0);
     }
 

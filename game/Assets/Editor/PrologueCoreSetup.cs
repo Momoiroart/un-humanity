@@ -43,8 +43,21 @@ public static class PrologueCoreSetup
         foreach (var pc in player.GetComponents<PlayerController>()) Object.DestroyImmediate(pc);
         foreach (var pi in player.GetComponents<PlayerInteractor>()) Object.DestroyImmediate(pi);
         var mover = player.GetComponent<PrologueMover>() ?? player.AddComponent<PrologueMover>();
-        var sprite = player.transform.Find("Sprite");
-        if (sprite != null) mover.spriteQuad = sprite;
+        // swap the placeholder quad for the generated SPUM protagonist, if present
+        var protag = SpumCast.Place(player.transform, SpumCast.Roster.Protagonist, Vector3.zero, "ProtagVisual");
+        if (protag != null)
+        {
+            // hide the prefab's placeholder quad (any sibling with a MeshRenderer)
+            foreach (Transform c in player.transform)
+                if (c != protag.transform && c.GetComponent<MeshRenderer>() != null)
+                    c.gameObject.SetActive(false);
+            mover.spriteQuad = protag.transform;   // facing flip applies to the SPUM unit
+        }
+        else
+        {
+            var sq = player.transform.Find("SpriteQuad") ?? player.transform.Find("Sprite");
+            if (sq != null) mover.spriteQuad = sq;
+        }
         flow.player = player.transform;
 
         // ── camera ──
