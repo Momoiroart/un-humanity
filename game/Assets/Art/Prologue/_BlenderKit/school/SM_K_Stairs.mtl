@@ -1,0 +1,17 @@
+# Generated for UN-HUMANITY prologue kit — restores SURF materials
+
+newmtl SURF_Concrete_Struct
+Kd 0.550 0.540 0.520
+Ka 0.165 0.162 0.156
+Ks 0.20 0.20 0.20
+Ns 8
+d 1.000
+illum 2
+
+newmtl SURF_Metal_Fence
+Kd 0.450 0.460 0.480
+Ka 0.135 0.138 0.144
+Ks 0.20 0.20 0.20
+Ns 80
+d 1.000
+illum 2
