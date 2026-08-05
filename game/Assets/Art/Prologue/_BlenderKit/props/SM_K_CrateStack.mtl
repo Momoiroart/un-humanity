@@ -1,0 +1,17 @@
+# Generated for UN-HUMANITY prologue kit — restores SURF materials
+
+newmtl SURF_Storefront_Wood
+Kd 0.520 0.380 0.260
+Ka 0.156 0.114 0.078
+Ks 0.20 0.20 0.20
+Ns 20
+d 1.000
+illum 2
+
+newmtl SURF_Wood_Dark
+Kd 0.320 0.220 0.150
+Ka 0.096 0.066 0.045
+Ks 0.20 0.20 0.20
+Ns 20
+d 1.000
+illum 2
