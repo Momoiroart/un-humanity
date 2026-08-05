@@ -84,7 +84,7 @@ public static class WalkHouses
 
     // ============ ARCHETYPES (return root, front at x=0) ============
 
-    static GameObject Machiya(Transform parent, string wallHex, string roofHex)
+    public static GameObject Machiya(Transform parent, string wallHex, string roofHex)
     {
         var root = new GameObject("House_Machiya"); root.transform.SetParent(parent, false);
         var t = root.transform;
@@ -108,7 +108,7 @@ public static class WalkHouses
         return root;
     }
 
-    static GameObject Modern(Transform parent, string wallHex, string accentHex)
+    public static GameObject Modern(Transform parent, string wallHex, string accentHex)
     {
         var root = new GameObject("House_Modern"); root.transform.SetParent(parent, false);
         var t = root.transform;
@@ -161,7 +161,7 @@ public static class WalkHouses
         return root;
     }
 
-    static GameObject Danchi(Transform parent, string wallHex)
+    public static GameObject Danchi(Transform parent, string wallHex)
     {
         var root = new GameObject("House_Danchi"); root.transform.SetParent(parent, false);
         var t = root.transform;
