@@ -38,6 +38,8 @@ public static class WalkLayout
             float z = 0.9f + j * 1.8f;                                              // Z 0..88, no gaps
             P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(-3.0f, 0, z), 0);         // top → 0.16 (raised)
             P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(3.0f, 0, z), 0);
+            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(-5.0f, 0, z), 0);         // 2nd row fills out to the facades (was ~35% too narrow)
+            P(root, "SM_P1_Sidewalk_Tile_2m", new Vector3(5.0f, 0, z), 0);
         }
         for (int j = 0; j < 44; j++)
         {
@@ -59,18 +61,18 @@ public static class WalkLayout
         for (int i = 0; i < panels; i++)
         {
             float z = 2.0f + i * 4.04f;
-            // LEFT (X=-4.3, road-facing +X)
-            Facade(root, -4.3f, z, +1, i);
-            // RIGHT (X=+4.3, road-facing -X) — shop cluster at i==13,14 (Z≈54-58)
+            // LEFT facade pushed out to -6.0 (was -4.3, which made the walls loom)
+            Facade(root, -6.0f, z, +1, i);
+            // RIGHT — shop cluster at i==13,14 (Z≈54-58)
             if (i == 13 || i == 14) ShopFront(root, z, i == 13);
-            else Facade(root, 4.3f, z, -1, i);
+            else Facade(root, 6.0f, z, -1, i);
         }
         // near-left garden edge (fence + low concrete wall + hedges), Z 0..30
         for (int j = 0; j < 8; j++)
         {
             float z = 2f + j * 3.6f;
-            P(root, "SM_P1_Fence_Panel_2m", new Vector3(-2.15f, 0.16f, z), 90);
-            if (j % 2 == 0) P(root, "SM_P1_Concrete_Wall_2m", new Vector3(-3.4f, 0, z + 1f), 90);
+            P(root, "SM_P1_Fence_Panel_2m", new Vector3(-5.7f, 0.16f, z), 90);
+            if (j % 2 == 0) P(root, "SM_P1_Concrete_Wall_2m", new Vector3(-5.9f, 0, z + 1f), 90);
         }
 
         // ── DEPTH: procedural utility poles alternating sides + a wire web. ──
@@ -78,29 +80,24 @@ public static class WalkLayout
         float[] pz = { 6f, 18f, 30f, 42f, 54f, 66f, 78f };
         for (int i = 0; i < pz.Length; i++)
         {
-            float x = (i % 2 == 0) ? -3.4f : 3.4f;
+            float x = (i % 2 == 0) ? -5.3f : 5.3f;
             poleTops.Add(UtilityPole(root, x, pz[i]));
         }
         var wireMat = FlatMat("Wire", "#1E1F2A", false, null, 0);
-        for (int i = 0; i < poleTops.Count - 1; i++)                                // zig-zag crossing web
-        {
-            Wire(root, poleTops[i], poleTops[i + 1], wireMat, 0f);
-            Wire(root, poleTops[i] + Vector3.down * 0.35f, poleTops[i + 1] + Vector3.down * 0.55f, wireMat, 0.12f);
-        }
-        for (int i = 0; i < poleTops.Count; i++)                                    // cross-street stubs toward the facades
-            Wire(root, poleTops[i], new Vector3(-poleTops[i].x * 1.15f, poleTops[i].y - 0.3f, poleTops[i].z + 2f), wireMat, 0f);
+        for (int i = 0; i < poleTops.Count - 1; i++)                                // a few gentle high spans, not a net
+            Wire(root, poleTops[i], poleTops[i + 1], wireMat, 0.15f);
 
         // street lamps (present but OFF in the morning) between the poles
-        foreach (var l in new[] { (-3.0f, 12f), (3.0f, 24f), (-3.0f, 48f), (3.0f, 72f) })
+        foreach (var l in new[] { (-5.0f, 12f), (5.0f, 24f), (-5.0f, 48f), (5.0f, 72f) })
             StreetLamp(root, l.Item1, l.Item2);
 
-        // ── TREES overhanging + street planting ──
-        foreach (var t in new[] { (-3.3f, 10f), (-3.5f, 34f), (3.4f, 26f), (-3.4f, 60f), (3.5f, 74f) })
+        // ── TREES overhanging toward the road (the concept's leafy framing) ──
+        foreach (var t in new[] { (-5.2f, 10f), (-5.3f, 34f), (5.2f, 26f), (-5.2f, 60f), (5.3f, 74f) })
             P(root, "SM_P1_Tree_Medium_A", new Vector3(t.Item1, 0, t.Item2), 0);
         foreach (float z in new[] { 6f, 22f, 44f, 66f, 80f })
         {
-            P(root, "SM_P1_Bush_Planter_A", new Vector3(-2.4f, 0.16f, z), 0);
-            P(root, "SM_P1_Bush_Planter_A", new Vector3(2.4f, 0.16f, z + 3f), 0);
+            P(root, "SM_P1_Bush_Planter_A", new Vector3(-4.6f, 0.16f, z), 0);
+            P(root, "SM_P1_Bush_Planter_A", new Vector3(4.6f, 0.16f, z + 3f), 0);
         }
 
         // ── STREET PROPS (~40, all off the 4 m walked path, |X|>1.9) ──
@@ -114,12 +111,12 @@ public static class WalkLayout
         foreach (float z in new[] { 54f, 56f }) P(root, "PRP_P1_Crate_Stack_A", new Vector3(2.4f, 0.16f, z), 25);
         foreach (var s in new[] { (2.0f, 55f, 0f), (2.0f, 58f, 0f), (-2.0f, 30f, 0f) }) P(root, "PRP_P1_Signboard_Vert_A", new Vector3(s.Item1, 1.1f, s.Item2), s.Item3);
         P(root, "PRP_P1_Signboard_Horz_A", new Vector3(-2.0f, 1.3f, 18f), 90);
-        foreach (var a in new[] { (4.15f, 2.4f, 56f, -90f), (-4.15f, 2.5f, 30f, 90f), (4.15f, 2.6f, 20f, -90f), (-4.15f, 2.3f, 62f, 90f) })
+        foreach (var a in new[] { (5.85f, 2.4f, 56f, -90f), (-5.85f, 2.5f, 30f, 90f), (5.85f, 2.6f, 20f, -90f), (-5.85f, 2.3f, 62f, 90f) })
             P(root, "PRP_P1_AC_Unit_A", new Vector3(a.Item1, a.Item2, a.Item3), a.Item4);
         foreach (var pp in new[] { (2.3f, 12f), (-2.3f, 48f), (2.3f, 70f), (-2.3f, 16f) }) P(root, "PRP_P1_Planter_Pot_A", new Vector3(pp.Item1, 0.16f, pp.Item2), 0);
         P(root, "PRP_P1_Bollard_Kit_A", new Vector3(-1.9f, 0, 40f), 0);
         P(root, "PRP_P1_Bollard_Kit_A", new Vector3(1.9f, 0, 40f), 0);
-        foreach (var po in new[] { (-4.14f, 1.6f, 26f, 90f), (4.14f, 1.7f, 62f, -90f) }) P(root, "PRP_P1_Poster_Card_A", new Vector3(po.Item1, po.Item2, po.Item3), po.Item4);
+        foreach (var po in new[] { (-5.86f, 1.6f, 26f, 90f), (5.86f, 1.7f, 62f, -90f) }) P(root, "PRP_P1_Poster_Card_A", new Vector3(po.Item1, po.Item2, po.Item3), po.Item4);
 
         // ── FAR END: the school gate at the destination + distant cards melting
         // into the warm haze (staggered, fog-tinted, far past the gate). ──
@@ -150,14 +147,14 @@ public static class WalkLayout
         var sunGo = new GameObject("MorningSun"); sunGo.transform.SetParent(root, false);
         sunGo.transform.rotation = Quaternion.Euler(18f, 182f, 0f);
         var sun = sunGo.AddComponent<Light>(); sun.type = LightType.Directional;
-        sun.color = Hx("#FFE7C4"); sun.intensity = 1.2f; sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.5f;
+        sun.color = Hx("#FFE7C4"); sun.intensity = 1.35f; sun.shadows = LightShadows.Soft; sun.shadowStrength = 0.85f;   // long raking shadows = the scene's main read
 
         // ── mood (warm morning haze) + beats ──
         var mood = new GameObject("MOOD");
         var rm = mood.AddComponent<RoomMood>();
-        rm.ambient = Hx("#C9B7A8");                          // warm, NOT neutral grey
-        rm.fog = Hx("#EAD9C2"); rm.fogDensity = 0.010f;
-        rm.cameraBackground = Hx("#E8D4C0");                 // warm sky at the vanishing point
+        rm.ambient = Hx("#8A7668");                          // dimmer → restores the shade-vs-light value range (bright flat ambient was flattening it)
+        rm.fog = Hx("#F1DFC0"); rm.fogDensity = 0.007f;
+        rm.cameraBackground = Hx("#F1DFC0");                 // warm glow at the vanishing point (was washing to white)
         var beats = mood.AddComponent<PrologueBeats>();
         beats.sceneId = "walk"; beats.nextScene = PrologueScenePaths.School;
 
@@ -183,10 +180,10 @@ public static class WalkLayout
 
     static void ShopFront(Transform p, float z, bool withVending)
     {
-        P(p, "SM_P1_Storefront_Hardware_A", new Vector3(4.5f, 0, z), -90);
-        P(p, "SM_P1_Storefront_Awning_A", new Vector3(3.4f, 2.5f, z), -90);
-        P(p, "SM_P1_House_Wall_A", new Vector3(4.3f, 3.4f, z), -90);      // upper storey over the shop
-        if (withVending) Vending(p, 3.55f, z - 1.4f);
+        P(p, "SM_P1_Storefront_Hardware_A", new Vector3(6.0f, 0, z), -90);
+        P(p, "SM_P1_Storefront_Awning_A", new Vector3(5.0f, 2.5f, z), -90);
+        P(p, "SM_P1_House_Wall_A", new Vector3(6.0f, 3.4f, z), -90);      // upper storey over the shop
+        if (withVending) Vending(p, 5.2f, z - 1.4f);
     }
 
     // ── procedural builds (no kit mesh fits) ──

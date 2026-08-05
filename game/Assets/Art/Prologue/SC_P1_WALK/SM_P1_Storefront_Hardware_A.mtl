@@ -1,0 +1,51 @@
+# Generated for UN-HUMANITY prologue kit — restores SURF materials
+
+newmtl SURF_Plaster_Wall
+Kd 0.790 0.740 0.670
+Ka 0.237 0.222 0.201
+Ks 0.20 0.20 0.20
+Ns 4
+d 1.000
+illum 2
+
+newmtl SURF_Glass_Std
+Kd 0.520 0.600 0.640
+Ka 0.156 0.180 0.192
+Ks 0.20 0.20 0.20
+Ns 120
+Ke 0.060 0.080 0.090
+d 0.720
+illum 2
+
+newmtl SURF_Storefront_Wood
+Kd 0.520 0.380 0.260
+Ka 0.156 0.114 0.078
+Ks 0.20 0.20 0.20
+Ns 20
+d 1.000
+illum 2
+
+newmtl SURF_Wood_Dark
+Kd 0.320 0.220 0.150
+Ka 0.096 0.066 0.045
+Ks 0.20 0.20 0.20
+Ns 20
+d 1.000
+illum 2
+
+newmtl SURF_Emissive_Screen
+Kd 0.900 0.850 0.700
+Ka 0.270 0.255 0.210
+Ks 0.20 0.20 0.20
+Ns 20
+Ke 1.000 0.920 0.720
+d 1.000
+illum 2
+
+newmtl SURF_Concrete_Struct
+Kd 0.550 0.540 0.520
+Ka 0.165 0.162 0.156
+Ks 0.20 0.20 0.20
+Ns 8
+d 1.000
+illum 2

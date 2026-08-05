@@ -1,0 +1,9 @@
+# Generated for UN-HUMANITY prologue kit — restores SURF materials
+
+newmtl SURF_School_Wall
+Kd 0.730 0.750 0.670
+Ka 0.219 0.225 0.201
+Ks 0.20 0.20 0.20
+Ns 4
+d 1.000
+illum 2

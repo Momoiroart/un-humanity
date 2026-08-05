@@ -1,0 +1,10 @@
+# Generated for UN-HUMANITY prologue kit — restores SURF materials
+
+newmtl SURF_Energy_Shift
+Kd 0.280 0.660 0.780
+Ka 0.084 0.198 0.234
+Ks 0.20 0.20 0.20
+Ns 20
+Ke 0.300 0.750 0.850
+d 0.900
+illum 2

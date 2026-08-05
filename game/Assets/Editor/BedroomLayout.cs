@@ -24,6 +24,13 @@ public static class BedroomLayout
     public static string Build()
     {
         var scene = EditorSceneManager.OpenScene(kScene, OpenSceneMode.Single);
+        // GUARD — SC_P0_Bedroom is OWNER-REVAMPED (2026-08-05) and is the source of
+        // truth; this script is intentionally out of sync. Bail if the owner's revamp
+        // marker (SunShaftSpot) is present so a rebuild can't wipe their work.
+        foreach (var g in scene.GetRootGameObjects())
+            foreach (var t in g.GetComponentsInChildren<Transform>(true))
+                if (t.name == "SunShaftSpot")
+                    return "SKIPPED: SC_P0_Bedroom is owner-revamped (source of truth). Remove 'SunShaftSpot' to re-enable a script rebuild.";
         foreach (var g in scene.GetRootGameObjects().Where(g => g.name == "BEDROOM" || g.name == "MOOD"))
             Object.DestroyImmediate(g);
         var room = new GameObject("BEDROOM").transform;
@@ -53,12 +60,13 @@ public static class BedroomLayout
         // left-of-centre, sheer + dark curtains, a bright sky-glow card behind
         // the glass, the procedural sun shaft, dust motes, and a low radiator. ──
         P(room, "SM_P0_Window_Frame_A", new Vector3(-0.75f, 0.85f, 1.74f), 0);
-        SkyCard(room, new Vector3(-0.75f, 1.20f, 2.02f));                 // blazing morning behind the glass
-        P(room, "SM_P0_Window_Glass_A", new Vector3(-0.75f, 0.85f, 1.73f), 0);
-        P(room, "SM_P0_Curtain_Sheer_A", new Vector3(-1.15f, 0, 1.70f), 0);
-        P(room, "SM_P0_Curtain_Sheer_A", new Vector3(-0.35f, 0, 1.70f), 0);
-        P(room, "SM_P0_Curtain_Dark_A", new Vector3(-1.55f, 0, 1.68f), 0);
-        P(room, "SM_P0_Curtain_Dark_A", new Vector3(0.05f, 0, 1.68f), 0);
+        P(room, "SM_P0_Window_Glass_A", new Vector3(-0.75f, 0.85f, 1.73f), 0);   // bright warm emissive pane fills the WHOLE aperture (the morning shining through) — the old sky-card was hidden behind the solid wall
+        // sheer curtains PULLED OPEN to the sides (narrow), so the window shines through the centre — were closed across the whole window
+        Curtain(room, "SM_P0_Curtain_Sheer_A", new Vector3(-1.52f, 0.32f, 1.70f), 0.55f);
+        Curtain(room, "SM_P0_Curtain_Sheer_A", new Vector3(0.02f, 0.32f, 1.70f), 0.55f);
+        // dark side drapes bracket the window OUTSIDE the aperture
+        Curtain(room, "SM_P0_Curtain_Dark_A", new Vector3(-1.90f, 0.24f, 1.68f), 0.8f);
+        Curtain(room, "SM_P0_Curtain_Dark_A", new Vector3(0.42f, 0.24f, 1.68f), 0.8f);
         P(room, "SM_P0_Radiator_A", new Vector3(0.40f, 0.28f, 1.71f), 0);
         LightShaft(room);
         DustMotes(room);
@@ -67,12 +75,12 @@ public static class BedroomLayout
         // the corner, two wide + two narrow wall shelves climbing the back wall.
         // Every surface packed. ──
         P(room, "SM_P0_Desk_A", new Vector3(-1.00f, 0, 1.45f), 0, true);
-        P(room, "SM_P0_Chair_A", new Vector3(-1.00f, 0, 0.85f), 180, true);
+        P(room, "SM_P0_Chair_A", new Vector3(-1.00f, 0, 1.02f), 180, true);   // tucked to the desk
         P(room, "SM_P0_Bookcase_A", new Vector3(-1.80f, 0, 1.05f), 90, true);
-        P(room, "SM_P0_Wall_Shelf_A", new Vector3(-1.25f, 1.78f, 1.73f), 0);
-        P(room, "SM_P0_Wall_Shelf_A", new Vector3(0.55f, 1.95f, 1.73f), 0);
+        P(room, "SM_P0_Wall_Shelf_A", new Vector3(-1.25f, 1.80f, 1.73f), 0);   // two clean tiers (were 4 scattered heights)
+        P(room, "SM_P0_Wall_Shelf_A", new Vector3(0.55f, 1.80f, 1.73f), 0);
         P(room, "SM_P0_Wall_Shelf_B", new Vector3(-1.60f, 2.12f, 1.73f), 0);
-        P(room, "SM_P0_Wall_Shelf_B", new Vector3(0.90f, 2.15f, 1.73f), 0);
+        P(room, "SM_P0_Wall_Shelf_B", new Vector3(0.90f, 2.12f, 1.73f), 0);
 
         // desk-top clutter (top plane ~0.74)
         P(room, "PRP_P0_Desk_Lamp_A", new Vector3(-1.50f, 0.74f, 1.60f), 25);
@@ -105,23 +113,25 @@ public static class BedroomLayout
         P(room, "PRP_P0_Picture_Frame_A", new Vector3(1.35f, 1.55f, 1.76f), 0);
 
         // ── BED (centre-right): long axis along Z, head to the window wall. ──
-        P(room, "SM_P0_Bed_Frame_A", new Vector3(0.75f, 0, 0.15f), 0, true);
-        P(room, "PRP_P0_Bedding_Set_A", new Vector3(0.75f, 0.36f, 0.05f), 0);
-        P(room, "PRP_P0_Pillow_A", new Vector3(0.55f, 0.50f, 0.95f), 4);
-        P(room, "PRP_P0_Pillow_A", new Vector3(0.95f, 0.50f, 0.95f), -6);
+        P(room, "SM_P0_Bed_Frame_A", new Vector3(0.75f, 0, 0.42f), 0, true);   // head to the wall (was floating 0.6 m off it)
+        P(room, "PRP_P0_Bedding_Set_A", new Vector3(0.75f, 0.36f, 0.42f), 0);   // aligned to the bed centre (was 0.10 m toward the foot)
+        P(room, "PRP_P0_Pillow_A", new Vector3(0.55f, 0.50f, 1.28f), 4);
+        P(room, "PRP_P0_Pillow_A", new Vector3(0.95f, 0.50f, 1.28f), -6);
 
         // ── WARDROBE on the RIGHT wall (concept + top-down place it right), with
         // a hanger + the school uniform jacket on its front corner. ──
-        P(room, "SM_P0_Wardrobe_A", new Vector3(1.72f, 0, 0.75f), -90, true);
-        P(room, "PRP_P0_Clothes_Hanger_A", new Vector3(1.46f, 1.55f, 0.35f), -90);
-        P(room, "PRP_P0_Uniform_Jacket_A", new Vector3(1.47f, 1.15f, 0.35f), -90);
-        P(room, "PRP_P0_Clothes_Hanger_A", new Vector3(-2.02f, 1.55f, -0.30f), 90);
-        P(room, "PRP_P0_Clothes_Hanger_A", new Vector3(-2.02f, 1.55f, -0.55f), 90);
+        P(room, "SM_P0_Wardrobe_A", new Vector3(1.72f, 0, 1.05f), -90, true);   // anchored to the back-right corner
+        P(room, "PRP_P0_Clothes_Hanger_A", new Vector3(1.46f, 1.55f, 0.65f), -90);
+        P(room, "PRP_P0_Uniform_Jacket_A", new Vector3(1.47f, 1.15f, 0.65f), -90);
+        // left/door wall carries framed art, not two floating hangers
+        P(room, "PRP_P0_Picture_Frame_A", new Vector3(-2.04f, 1.55f, -0.20f), 90);
+        P(room, "PRP_P0_Picture_Frame_A", new Vector3(-2.04f, 1.55f, 0.60f), 90);
 
         // ── RUG + school bag (foreground anchors where the shaft lands) + lamp ──
-        P(room, "SM_P0_Rug_Rect_A", new Vector3(0.10f, 0.005f, -0.25f), 0);
-        P(room, "PRP_P0_School_Bag_A", new Vector3(0.25f, 0, -0.55f), 25);
-        P(room, "SM_P0_Ceiling_Lamp_A", new Vector3(0, 2.45f, 0.20f), 0);
+        RugBig(room, new Vector3(0.10f, 0.005f, -0.55f));                        // enlarged + pulled forward to fill the dead foreground
+        P(room, "PRP_P0_School_Bag_A", new Vector3(0.35f, 0, -0.80f), 25);       // on the rug's near edge
+        P(room, "PRP_P0_Books_Stack_A", new Vector3(-1.78f, 0, 0.70f), 20);      // leaning floor stack by the bookcase
+        P(room, "SM_P0_Ceiling_Lamp_A", new Vector3(0.10f, 2.45f, -0.30f), 0);   // centred over the rug
 
         // ── COLLISION: ground + boundary (front wall is a visual cutaway but
         // still needs an invisible wall so the player can't run out the open side). ──
@@ -141,32 +151,32 @@ public static class BedroomLayout
         // ── LIGHTING RIG: warm-morning 4-light (replaces the single flat point). ──
         // key: directional sun raking in through the window, soft shadows = HD-2D form
         var keyGo = new GameObject("KeySun"); keyGo.transform.SetParent(room, false);
-        keyGo.transform.rotation = Quaternion.Euler(32f, 205f, 0f);
+        keyGo.transform.rotation = Quaternion.Euler(28f, 198f, 0f);
         var key = keyGo.AddComponent<Light>(); key.type = LightType.Directional;
-        key.color = Hx("#FFF1DE"); key.intensity = 1.35f; key.shadows = LightShadows.Soft; key.shadowStrength = 0.55f;
+        key.color = Hx("#FFE7C4"); key.intensity = 1.5f; key.shadows = LightShadows.Soft; key.shadowStrength = 0.6f;
         // fill: cool sky bounce at the window plane (point stands in for a rect-area)
         var fillGo = new GameObject("WindowFill"); fillGo.transform.SetParent(room, false);
         fillGo.transform.localPosition = new Vector3(-0.75f, 1.30f, 1.55f);
         var fill = fillGo.AddComponent<Light>(); fill.type = LightType.Point;
-        fill.color = Hx("#EDF2FF"); fill.intensity = 0.9f; fill.range = 4.5f;
+        fill.color = Hx("#F5E9D6"); fill.intensity = 0.45f; fill.range = 4.5f;   // warm, not icy — was draining every surface
         // rim: warm back separation
         var rimGo = new GameObject("RimWarm"); rimGo.transform.SetParent(room, false);
         rimGo.transform.localPosition = new Vector3(0.60f, 2.30f, 1.85f);
         var rim = rimGo.AddComponent<Light>(); rim.type = LightType.Point;
-        rim.color = Hx("#FFE3BE"); rim.intensity = 0.5f; rim.range = 5f;
+        rim.color = Hx("#FFDCA8"); rim.intensity = 0.4f; rim.range = 5f;
 
         // ── authored camera (C03 overview matching the concept) ──
         var camGo = new GameObject("SceneCam"); camGo.transform.SetParent(room, false);
-        camGo.transform.position = new Vector3(-0.35f, 2.90f, -5.20f);
-        camGo.transform.rotation = Quaternion.LookRotation(new Vector3(0.05f, 1.10f, 0.40f) - camGo.transform.position, Vector3.up);
-        camGo.AddComponent<SceneCam>().fov = 45f;
+        camGo.transform.position = new Vector3(0.10f, 2.30f, -3.75f);   // BELOW the 2.60 ceiling — lens stays inside the room (was at 2.90, looking OVER the walls into void)
+        camGo.transform.rotation = Quaternion.LookRotation(new Vector3(0.10f, 0.75f, 0.35f) - camGo.transform.position, Vector3.up);
+        camGo.AddComponent<SceneCam>().fov = 42f;
 
         // ── mood (warm — the only warm scene) + beats ──
         var mood = new GameObject("MOOD");
         var rm = mood.AddComponent<RoomMood>();
-        rm.ambient = Hx("#574636");                 // warm color ambient (NOT default grey)
-        rm.fog = new Color(0.30f, 0.26f, 0.24f); rm.fogDensity = 0.004f;
-        rm.cameraBackground = new Color(0.12f, 0.10f, 0.11f);
+        rm.ambient = Hx("#7A5F44");                  // brighter warm — the room is bathed, not murky
+        rm.fog = Hx("#4A3626"); rm.fogDensity = 0.006f;
+        rm.cameraBackground = Hx("#17110E");
         var beats = mood.AddComponent<PrologueBeats>();
         beats.sceneId = "bedroom"; beats.nextScene = PrologueScenePaths.Walk;
 
@@ -189,7 +199,7 @@ public static class BedroomLayout
         q.transform.localScale = new Vector3(2.6f, 2.0f, 1f);
         var m = GetMat("SkyGlow", Shader.Find("Universal Render Pipeline/Lit"));
         m.SetColor("_BaseColor", Hx("#3A2E22")); m.SetFloat("_Smoothness", 0f);
-        m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Hx("#FFF3E2") * 2.6f);
+        m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Hx("#FFE7C6") * 1.3f);   // warm readable glow, not a blown-white hole
         m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive; EditorUtility.SetDirty(m);
         q.GetComponent<MeshRenderer>().sharedMaterial = m;
     }
@@ -220,7 +230,7 @@ public static class BedroomLayout
     static Material ShaftMat()
     {
         var m = GetMat("Shaft", Shader.Find("Universal Render Pipeline/Unlit"));
-        m.SetColor("_BaseColor", new Color(1.0f, 0.91f, 0.77f, 0.045f));
+        m.SetColor("_BaseColor", new Color(1.0f, 0.90f, 0.74f, 0.025f));   // faint warm air, not a grey slab
         m.SetFloat("_Surface", 1f);                              // transparent
         m.SetFloat("_Blend", 0f);
         m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
@@ -292,6 +302,33 @@ public static class BedroomLayout
         return go;
     }
 
+    // a curtain panel, scaled narrower on X so a pair can bunch to the window's
+    // sides (pulled open) instead of covering the whole aperture
+    static void Curtain(Transform parent, string mesh, Vector3 pos, float scaleX)
+    {
+        var src = AssetDatabase.LoadAssetAtPath<GameObject>($"{kKit}/{mesh}.obj");
+        if (src == null) return;
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(src);
+        go.name = mesh; go.transform.SetParent(parent, false);
+        go.transform.localPosition = pos; go.transform.localScale = new Vector3(scaleX, 1f, 1f);
+        var mat = MatFor(mesh);
+        foreach (var r in go.GetComponentsInChildren<MeshRenderer>()) r.sharedMaterial = mat;
+        foreach (var mc in go.GetComponentsInChildren<MeshCollider>()) Object.DestroyImmediate(mc);
+    }
+
+    // the rug, scaled up to fill the lower-third foreground the camera can't crop
+    static void RugBig(Transform parent, Vector3 pos)
+    {
+        var src = AssetDatabase.LoadAssetAtPath<GameObject>($"{kKit}/SM_P0_Rug_Rect_A.obj");
+        if (src == null) return;
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(src);
+        go.name = "SM_P0_Rug_Rect_A"; go.transform.SetParent(parent, false);
+        go.transform.localPosition = pos; go.transform.localScale = new Vector3(1.2f, 1f, 1.18f);
+        var mat = MatFor("SM_P0_Rug_Rect_A");
+        foreach (var r in go.GetComponentsInChildren<MeshRenderer>()) r.sharedMaterial = mat;
+        foreach (var mc in go.GetComponentsInChildren<MeshCollider>()) Object.DestroyImmediate(mc);
+    }
+
     static Material GetMat(string key, Shader shader)
     {
         var path = $"{kMatDir}/M_P0_{key}.mat";
@@ -306,13 +343,14 @@ public static class BedroomLayout
     static Material MatFor(string mesh)
     {
         string key; string hex; bool emiss = false; string ehex = null; float k = 0; float trans = 0;
-        if (mesh.Contains("Floor")) { key = "WoodFloor"; hex = "#9A6A44"; }
-        else if (mesh.Contains("Wall") || mesh.Contains("Ceiling") || mesh.Contains("Baseboard")) { key = "Wall"; hex = "#D8C9BC"; }
-        else if (mesh.Contains("Rug")) { key = "Rug"; hex = "#86525A"; }
-        else if (mesh.Contains("Curtain_Sheer")) { key = "Sheer"; hex = "#E8DECF"; }
+        if (mesh.Contains("Floor")) { key = "WoodFloor"; hex = "#8A6B4E"; }        // warmer oak, less saturated orange
+        else if (mesh.Contains("Wall") || mesh.Contains("Ceiling") || mesh.Contains("Baseboard")) { key = "Wall"; hex = "#E2D2BE"; }   // warm cream, not cold
+        else if (mesh.Contains("Rug")) { key = "Rug"; hex = "#7A5A50"; }          // muted woven, not a pink slab
+        else if (mesh.Contains("Curtain_Sheer")) { key = "Sheer"; hex = "#F0E4D0"; }
         else if (mesh.Contains("Curtain")) { key = "CurtainD"; hex = "#6E5A50"; }
-        else if (mesh.Contains("Bedding") || mesh.Contains("Pillow")) { key = "Bedding"; hex = "#7E8A9A"; }
-        else if (mesh.Contains("Glass")) { key = "Glass"; hex = "#DDEBF2"; trans = 0.22f; emiss = true; ehex = "#FFF3E2"; k = 0.6f; }
+        else if (mesh.Contains("Pillow")) { key = "Pillow"; hex = "#C9BFAE"; }     // warm pillow (splits from the bedding)
+        else if (mesh.Contains("Bedding")) { key = "Bedding"; hex = "#6E7E92"; }
+        else if (mesh.Contains("Glass")) { key = "Glass"; hex = "#4A3A2C"; emiss = true; ehex = "#FFE7C6"; k = 2.2f; }   // bright warm glowing pane = the whole window shining
         else if (mesh.Contains("Phone")) { key = "PhoneScr"; hex = "#2A2530"; emiss = true; ehex = "#C8D8FF"; k = 1.4f; }
         else if (mesh.Contains("Desk_Lamp")) { key = "LampBulb"; hex = "#4A4450"; emiss = true; ehex = "#FFE3B0"; k = 1.8f; }
         else if (mesh.Contains("Plant")) { key = "Foliage"; hex = "#4A6A3C"; }

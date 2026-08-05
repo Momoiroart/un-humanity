@@ -1,0 +1,9 @@
+# Generated for UN-HUMANITY prologue kit — restores SURF materials
+
+newmtl SURF_Ceramic_Mug
+Kd 0.850 0.830 0.800
+Ka 0.255 0.249 0.240
+Ks 0.20 0.20 0.20
+Ns 90
+d 1.000
+illum 2

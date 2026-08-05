@@ -1,0 +1,9 @@
+# Generated for UN-HUMANITY prologue kit — restores SURF materials
+
+newmtl SURF_Fabric_Sheer
+Kd 0.860 0.830 0.790
+Ka 0.258 0.249 0.237
+Ks 0.20 0.20 0.20
+Ns 4
+d 0.750
+illum 2
